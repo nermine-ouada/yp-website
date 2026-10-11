@@ -6,21 +6,19 @@ import { SafeImage } from "@/components/SafeImage";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { ArrowIcon } from "@/components/icons";
-import { events, getEvent } from "@/data/events";
+import { getEventBySlug } from "@/lib/content";
 
-export function generateStaticParams() {
-  return events.map((e) => ({ slug: e.slug }));
-}
+export const revalidate = 60;
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
-  const event = getEvent(slug);
+  const event = await getEventBySlug(slug);
   return event ? { title: event.title, description: event.summary } : {};
 }
 
 export default async function EventPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const event = getEvent(slug);
+  const event = await getEventBySlug(slug);
   if (!event) notFound();
 
   const facts: [string, string | undefined][] = [

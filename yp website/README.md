@@ -46,13 +46,28 @@ Open http://localhost:3000 for the board. The admin portal is at http://localhos
 | `npm run start` | Serve the production build |
 | `npm run lint` | Run ESLint |
 | `npm run db:migrate` | Apply pending migrations (`prisma migrate deploy`) using `.env.local` |
+| `npm run db:seed` | Fill the events and team tables with the starting content (only touches empty tables) |
 | `npm run db:studio` | Open Prisma Studio |
 
 ## Admin portal
 
+The dashboard at `/admin` manages all site content:
+
+- **Overview:** counts and recent changes.
+- **Opportunities** (`/admin/opportunities`): the pinboard.
+- **Events** (`/admin/events`): every event, talk, challenge and announcement. Each one gets its own page at `/events/<web address>`.
+- **Team** (`/admin/team`): officers, YP Task Force members (grouped by committee) and ambassadors.
+- **Site content** (`/admin/site`): home page text, key figures, about, contact, footer links and the YouTube video.
+- **Trash** (`/admin/trash`): deleted opportunities, events and people, until restored or deleted for good.
+
+Opportunities, events and team members can each be imported from Excel or CSV (an Import button on each list). Download the template, fill it in, then review every row before saving. The team import also accepts the Task Force sheet as it is: it reads Full Name, Position, Committee, IEEE membership and IEEE Student Branch, and ignores other columns such as phone and email.
+
+Images can be uploaded from the forms (JPEG, PNG, WebP or GIF, up to 3 MB). They are stored in the database and served from `/api/uploads/<id>`.
+
+
 - **Login:** one shared password and no user accounts. A session lasts **15 minutes** and isn't extended by activity.
 - **Show / hide:** each row on the dashboard has a Hide/Show button. A hidden opportunity disappears from the public board, the `/links` count and the public API, but stays in the admin, marked **Hidden**. The dashboard can filter by visibility.
-- **Delete is a soft delete.** Deleted rows go to the trash at `/admin/trash`, where they can be recovered or permanently deleted.
+- **Delete is a soft delete** for opportunities, events and people. Deleted rows go to the trash at `/admin/trash`, where they can be restored or permanently deleted.
 - **Bulk import** at `/admin/import`: download the template, fill it in, upload it, then review each row before saving.
 
 ## Project structure

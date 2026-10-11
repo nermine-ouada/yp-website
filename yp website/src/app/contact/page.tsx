@@ -1,22 +1,24 @@
 import type { Metadata } from "next";
 import { PageHero, SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
-import { about, contact } from "@/data/ypTunisia";
+import { getSite } from "@/lib/content";
 
 export const metadata: Metadata = {
   title: "Contact",
   description: "Get in touch with the IEEE Young Professionals Tunisia Affinity Group.",
 };
 
-const CARDS = [
-  { tag: "Email", value: contact.email, href: `mailto:${contact.email}` },
-  { tag: "Phone", value: contact.phone, href: `tel:${contact.phone.replace(/\s/g, "")}` },
-  { tag: "Facebook", value: "ieee.yp.tunisia", href: contact.facebook },
-  { tag: "Hours", value: `${contact.hours}, ${contact.days}` },
-  { tag: "Location", value: contact.location },
-];
+export const revalidate = 60;
 
-export default function ContactPage() {
+export default async function ContactPage() {
+  const { contact, joinUrl } = await getSite();
+  const facebookHandle = contact.facebook.replace(/\/+$/, "").split("/").pop() || contact.facebook;
+  const CARDS: { tag: string; value: string; href?: string }[] = [
+    { tag: "Email", value: contact.email, href: `mailto:${contact.email}` },
+    { tag: "Phone", value: contact.phone, href: `tel:${contact.phone.replace(/\s/g, "")}` },
+    { tag: "Facebook", value: facebookHandle, href: contact.facebook },
+    { tag: "Location", value: contact.location },
+  ].filter((c) => c.value);
   return (
     <div className="pro-page">
       <SiteHeader />
@@ -65,7 +67,7 @@ export default function ContactPage() {
                 <h2>Not an IEEE member yet?</h2>
                 <p>Everyone is welcome at our meetings, and membership unlocks most opportunities.</p>
               </div>
-              <a className="pro-btn" href={about.joinUrl} target="_blank" rel="noopener noreferrer">
+              <a className="pro-btn" href={joinUrl} target="_blank" rel="noopener noreferrer">
                 Join IEEE
               </a>
             </div>

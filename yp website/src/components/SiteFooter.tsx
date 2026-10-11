@@ -1,14 +1,15 @@
 import Link from "next/link";
 import { NAV } from "@/data/nav";
-import { contact, footerLinks, site, usefulLinks } from "@/data/ypTunisia";
+import { getSite } from "@/lib/content";
 
-export function SiteFooter({ note }: { note?: React.ReactNode }) {
+export async function SiteFooter({ note }: { note?: React.ReactNode }) {
+  const { name, footerLinks, usefulLinks, contact, copyright } = await getSite();
   return (
     <footer>
       <div className="wrap">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img className="footer-logo" src="/yp-tunisia-logo.png" alt="IEEE Young Professionals Tunisia Section" />
-        <span className="tape-strip">{site.name}</span>
+        <span className="tape-strip">{name}</span>
 
         <div className="footer-cols">
           <div>
@@ -61,7 +62,7 @@ export function SiteFooter({ note }: { note?: React.ReactNode }) {
             {contact.email}
           </a>
           <br />
-          {site.copyright}
+          {copyright}
         </p>
       </div>
     </footer>

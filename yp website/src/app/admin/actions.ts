@@ -27,7 +27,7 @@ export async function createOpportunity(formData: FormData) {
   await prisma.opportunity.create({ data: { ...data, sortOrder: 0 } });
   revalidatePath("/");
   revalidatePath("/opportunities");
-  redirect("/admin");
+  redirect("/admin/opportunities");
 }
 
 export async function updateOpportunity(id: string, formData: FormData) {
@@ -36,7 +36,7 @@ export async function updateOpportunity(id: string, formData: FormData) {
   await prisma.opportunity.update({ where: { id }, data });
   revalidatePath("/");
   revalidatePath("/opportunities");
-  redirect("/admin");
+  redirect("/admin/opportunities");
 }
 
 // Soft delete: move to trash instead of removing the row. Public board query
@@ -48,7 +48,7 @@ export async function deleteOpportunity(formData: FormData) {
   await prisma.opportunity.update({ where: { id }, data: { deletedAt: new Date() } });
   revalidatePath("/");
   revalidatePath("/opportunities");
-  redirect("/admin");
+  redirect("/admin/opportunities");
 }
 
 // Show/hide on the public board without deleting. No redirect: re-rendering
@@ -62,7 +62,7 @@ export async function setOpportunityHidden(formData: FormData) {
   revalidatePath("/");
   revalidatePath("/opportunities");
   revalidatePath("/links");
-  revalidatePath("/admin");
+  revalidatePath("/admin/opportunities");
 }
 
 export async function recoverOpportunity(formData: FormData) {
@@ -72,13 +72,6 @@ export async function recoverOpportunity(formData: FormData) {
   await prisma.opportunity.update({ where: { id }, data: { deletedAt: null } });
   revalidatePath("/");
   revalidatePath("/opportunities");
-  redirect("/admin/trash");
-}
-
-// Permanent: actually removes every trashed row from the database.
-export async function emptyTrash() {
-  await assertAdmin();
-  await prisma.opportunity.deleteMany({ where: { deletedAt: { not: null } } });
   redirect("/admin/trash");
 }
 

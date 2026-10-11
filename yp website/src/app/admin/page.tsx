@@ -1,183 +1,97 @@
 import Link from "next/link";
-import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
-import { deleteOpportunity, setOpportunityHidden } from "./actions";
-import { logout } from "./login/actions";
-import { getDistinctSheets } from "@/lib/opportunities";
-import { ConfirmButton } from "@/components/admin/ConfirmButton";
-import { SubmitButton } from "@/components/admin/SubmitButton";
 
 export const dynamic = "force-dynamic";
 
-export default async function AdminDashboard({
-  searchParams,
-}: {
-  searchParams: Promise<{ q?: string; sheet?: string; status?: string; visibility?: string }>;
-}) {
-  const params = await searchParams;
-  const q = params.q?.trim() ?? "";
-  const sheet = params.sheet ?? "";
-  const status = params.status ?? "";
-  const visibility = params.visibility === "visible" || params.visibility === "hidden" ? params.visibility : "";
+function timeAgo(d: Date) {
+  const mins = Math.round((Date.now() - d.getTime()) / 60000);
+  if (mins < 1) return "just now";
+  if (mins < 60) return `${mins} min ago`;
+  const hours = Math.round(mins / 60);
+  if (hours < 24) return `${hours} h ago`;
+  return d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+}
 
-  const where: Prisma.OpportunityWhereInput = { deletedAt: null };
-  if (sheet) where.sheet = sheet;
-  if (status) where.status = status;
-  if (visibility) where.hidden = visibility === "hidden";
-  if (q) {
-    where.OR = [
-      { title: { contains: q, mode: "insensitive" } },
-      { category: { contains: q, mode: "insensitive" } },
-      { level: { contains: q, mode: "insensitive" } },
-      { who: { contains: q, mode: "insensitive" } },
-    ];
-  }
-
-  const [opportunities, trashedCount, allSheets, allStatuses, totalActive, hiddenCount] = await Promise.all([
-    prisma.opportunity.findMany({ where, orderBy: [{ sheet: "asc" }, { sortOrder: "asc" }] }),
-    prisma.opportunity.count({ where: { deletedAt: { not: null } } }),
-    getDistinctSheets(),
-    prisma.opportunity
-      .findMany({ where: { deletedAt: null }, distinct: ["status"], select: { status: true }, orderBy: { status: "asc" } })
-      .then((rows) => rows.map((r) => r.status)),
+export default async function AdminOverview() {
+  const today = new Date().toISOString().slice(0, 10);
+  const [opps, oppsHidden, events, upcoming, people, recentOpps, recentEvents, recentPeople] = await Promise.all([
     prisma.opportunity.count({ where: { deletedAt: null } }),
     prisma.opportunity.count({ where: { deletedAt: null, hidden: true } }),
+    prisma.event.count({ where: { deletedAt: null } }),
+    prisma.event.count({ where: { deletedAt: null, date: { gte: today } } }),
+    prisma.person.groupBy({ by: ["group"], where: { deletedAt: null }, _count: true }),
+    prisma.opportunity.findMany({ where: { deletedAt: null }, orderBy: { updatedAt: "desc" }, take: 8, select: { id: true, title: true, updatedAt: true } }),
+    prisma.event.findMany({ where: { deletedAt: null }, orderBy: { updatedAt: "desc" }, take: 8, select: { id: true, title: true, updatedAt: true } }),
+    prisma.person.findMany({ where: { deletedAt: null }, orderBy: { updatedAt: "desc" }, take: 8, select: { id: true, name: true, updatedAt: true } }),
   ]);
+  const count = (g: string) => people.find((p) => p.group === g)?._count ?? 0;
 
-  const hasFilters = Boolean(q || sheet || status || visibility);
+  const recent = [
+    ...recentOpps.map((r) => ({ kind: "Opportunity", title: r.title, at: r.updatedAt, href: `/admin/${r.id}` })),
+    ...recentEvents.map((r) => ({ kind: "Event", title: r.title, at: r.updatedAt, href: `/admin/events/${r.id}` })),
+    ...recentPeople.map((r) => ({ kind: "Team", title: r.name, at: r.updatedAt, href: `/admin/team/${r.id}` })),
+  ]
+    .sort((a, b) => b.at.getTime() - a.at.getTime())
+    .slice(0, 8);
+
+  const cards = [
+    { label: "Opportunities", value: opps, sub: oppsHidden ? `${oppsHidden} hidden` : "", href: "/admin/opportunities" },
+    { label: "Events", value: events, sub: upcoming ? `${upcoming} upcoming` : "", href: "/admin/events" },
+    { label: "Officers", value: count("officer"), sub: "", href: "/admin/team?group=officer" },
+    { label: "Task Force", value: count("taskforce"), sub: "", href: "/admin/team?group=taskforce" },
+    { label: "Ambassadors", value: count("ambassador"), sub: "", href: "/admin/team?group=ambassador" },
+  ];
 
   return (
     <main>
       <div className="wrap">
         <div className="admin-bar">
-          <div>
-            <span className="eyebrow" style={{ marginBottom: 4 }}>
-              // admin
-            </span>
-            <h1>The YP Pinboard · manage opportunities</h1>
-          </div>
+          <h1>Overview</h1>
           <div className="admin-bar-actions">
-            <Link href="/opportunities" className="admin-link-btn">
-              ← view board
+            <Link href="/admin/new" className="admin-link-btn">
+              New opportunity
             </Link>
-            <Link href="/admin/trash" className="admin-link-btn">
-              Trash{trashedCount > 0 ? ` (${trashedCount})` : ""}
+            <Link href="/admin/events/new" className="admin-link-btn">
+              New event
             </Link>
-            <Link href="/admin/import" className="admin-link-btn">
-              Import from Excel
+            <Link href="/admin/team/new?group=taskforce" className="admin-link-btn">
+              New person
             </Link>
-            <Link href="/admin/new" className="apply-btn" style={{ ["--accent" as string]: "var(--blue)" }}>
-              + Add opportunity
-            </Link>
-            <form action={logout}>
-              <button type="submit" className="admin-link-btn">
-                Log out
-              </button>
-            </form>
           </div>
         </div>
 
-        <form className="admin-filter-bar" method="get">
-          <input
-            type="search"
-            name="q"
-            defaultValue={q}
-            placeholder="Search title, level, who qualifies…"
-            className="admin-input"
-            style={{ maxWidth: 280 }}
-          />
-          <select name="sheet" defaultValue={sheet} className="admin-select" style={{ maxWidth: 200 }}>
-            <option value="">All categories</option>
-            {allSheets.map((s) => (
-              <option key={s} value={s}>
-                {s}
-              </option>
-            ))}
-          </select>
-          <select name="status" defaultValue={status} className="admin-select" style={{ maxWidth: 160 }}>
-            <option value="">All statuses</option>
-            {allStatuses.map((s) => (
-              <option key={s} value={s}>
-                {s}
-              </option>
-            ))}
-          </select>
-          <select name="visibility" defaultValue={visibility} className="admin-select" style={{ maxWidth: 160 }}>
-            <option value="">Visible &amp; hidden</option>
-            <option value="visible">Visible only</option>
-            <option value="hidden">Hidden only</option>
-          </select>
-          <button type="submit" className="admin-link-btn">
-            Filter
-          </button>
-          {hasFilters && (
-            <Link href="/admin" className="admin-link-btn">
-              Clear
+        <div className="dash-cards">
+          {cards.map((c) => (
+            <Link key={c.label} href={c.href} className="dash-card">
+              <span className="dash-card-label">{c.label}</span>
+              <b>{c.value}</b>
+              {c.sub && <span className="dash-card-sub">{c.sub}</span>}
             </Link>
-          )}
-        </form>
+          ))}
+        </div>
 
-        <p className="count-line">
-          {hasFilters ? `Showing ${opportunities.length} of ${totalActive}` : `${totalActive} opportunities pinned`}
-          {hiddenCount > 0 && ` · ${hiddenCount} hidden from the public board`}
-        </p>
-
+        <h2 className="dash-section-title">Recent changes</h2>
         <div className="admin-table-wrap">
-          <table className="admin-table">
+          <table className="admin-table" style={{ minWidth: 0 }}>
             <thead>
               <tr>
-                <th>Category</th>
-                <th>Title</th>
-                <th>Level</th>
-                <th>Status</th>
-                <th>Deadline</th>
-                <th></th>
+                <th>Item</th>
+                <th>Section</th>
+                <th>Edited</th>
               </tr>
             </thead>
             <tbody>
-              {opportunities.length === 0 ? (
-                <tr>
-                  <td colSpan={6} style={{ color: "var(--muted)" }}>
-                    Nothing matches those filters.
+              {recent.map((r) => (
+                <tr key={r.href}>
+                  <td>
+                    <Link href={r.href} style={{ color: "inherit" }}>
+                      {r.title}
+                    </Link>
                   </td>
+                  <td style={{ color: "var(--dash-muted)" }}>{r.kind}</td>
+                  <td style={{ color: "var(--dash-muted)", whiteSpace: "nowrap" }}>{timeAgo(r.at)}</td>
                 </tr>
-              ) : (
-                opportunities.map((item) => (
-                  <tr key={item.id} className={item.hidden ? "admin-row-hidden" : undefined}>
-                    <td>{item.sheet}</td>
-                    <td>
-                      {item.title}
-                      {item.hidden && <span className="admin-hidden-badge">Hidden</span>}
-                    </td>
-                    <td>{item.level}</td>
-                    <td>{item.status}</td>
-                    <td>{item.deadline}</td>
-                    <td>
-                      <div className="admin-row-actions">
-                        <Link href={`/admin/${item.id}`} className="admin-link-btn">
-                          Edit
-                        </Link>
-                        <form action={setOpportunityHidden}>
-                          <input type="hidden" name="id" value={item.id} />
-                          <input type="hidden" name="hidden" value={item.hidden ? "false" : "true"} />
-                          <SubmitButton className="admin-link-btn" pendingLabel="Saving…">
-                            {item.hidden ? "Show" : "Hide"}
-                          </SubmitButton>
-                        </form>
-                        <form action={deleteOpportunity}>
-                          <input type="hidden" name="id" value={item.id} />
-                          <ConfirmButton
-                            className="admin-link-btn danger"
-                            confirmMessage={`Move "${item.title}" to trash?`}
-                          >
-                            Delete
-                          </ConfirmButton>
-                        </form>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              )}
+              ))}
             </tbody>
           </table>
         </div>

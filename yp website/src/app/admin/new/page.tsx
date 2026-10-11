@@ -14,12 +14,9 @@ export default async function NewOpportunityPage() {
       <div className="wrap">
         <div className="admin-bar">
           <div>
-            <span className="eyebrow" style={{ marginBottom: 4 }}>
-              // admin
-            </span>
             <h1>Add an opportunity</h1>
           </div>
-          <Link href="/admin" className="admin-link-btn">
+          <Link href="/admin/opportunities" className="admin-link-btn">
             ← back to list
           </Link>
         </div>

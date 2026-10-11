@@ -6,8 +6,8 @@ import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { ArrowIcon } from "@/components/icons";
 import { getOpportunities } from "@/lib/opportunities";
-import { about, ambassadors, contact, officers, officersTerm, site, taskForce } from "@/data/ypTunisia";
-import { events, isNews, sortByDate } from "@/data/events";
+import { getEvents, getSite, getTeam } from "@/lib/content";
+import { isNews, sortByDate } from "@/data/events";
 
 // Shows a few live opportunities, so keep the same cadence as the board.
 export const revalidate = 60;
@@ -28,7 +28,9 @@ function initials(name: string) {
 }
 
 export default async function Home() {
-  const opportunities = await getOpportunities();
+  const [opportunities, site, events, team] = await Promise.all([getOpportunities(), getSite(), getEvents(), getTeam()]);
+  const { about, contact, officersTerm } = site;
+  const { officers, taskForce, ambassadors } = team;
   const open = opportunities.filter((o) => /open/i.test(o.status));
   const featured = (open.length >= 4 ? open : opportunities).slice(0, 4);
   const recent = sortByDate(events.filter((e) => !isNews(e) && !e.initiative)).slice(0, 6);
@@ -43,16 +45,13 @@ export default async function Home() {
         <div className="wrap pro-hero home-hero">
           <div>
             <span className="pro-kicker">IEEE Young Professionals Tunisia Affinity Group</span>
-            <h1>Supporting young engineers from graduation to leadership</h1>
-            <p>
-              {about.intro} We help new graduates move into professional life through networking,
-              workshops, mentorship and access to IEEE opportunities.
-            </p>
+            <h1>{site.heroTitle}</h1>
+            <p>{site.heroText}</p>
             <div className="pro-actions">
               <Link className="pro-btn" href="/opportunities">
                 Browse opportunities <ArrowIcon />
               </Link>
-              <a className="pro-btn secondary" href={about.joinUrl} target="_blank" rel="noopener noreferrer">
+              <a className="pro-btn secondary" href={site.joinUrl} target="_blank" rel="noopener noreferrer">
                 Join IEEE
               </a>
             </div>
@@ -73,22 +72,12 @@ export default async function Home() {
         <div className="wrap">
           <section className="pro-section">
             <div className="pro-stats">
-              <div className="pro-stat">
-                <b>2010</b>
-                <span>Founded on 2 April</span>
-              </div>
-              <div className="pro-stat">
-                <b>{about.members}</b>
-                <span>Members (January 2019)</span>
-              </div>
-              <div className="pro-stat">
-                <b>{opportunities.length}</b>
-                <span>Opportunities listed</span>
-              </div>
-              <div className="pro-stat">
-                <b>2022</b>
-                <span>IEEE YP Hall of Fame Award</span>
-              </div>
+              {site.stats.map((st) => (
+                <div className="pro-stat" key={st.label}>
+                  <b>{st.value.replace("{opportunities}", String(opportunities.length))}</b>
+                  <span>{st.label}</span>
+                </div>
+              ))}
             </div>
           </section>
 
@@ -96,8 +85,8 @@ export default async function Home() {
             <div>
               <span className="pro-kicker">What we offer</span>
               <h2 className="pro-h2">Connect, learn, lead, thrive</h2>
-              <p className="pro-lead">{about.mission.summary}</p>
-              <p className="pro-lead">{about.mission.conclusion}</p>
+              <p className="pro-lead">{about.missionSummary}</p>
+              <p className="pro-lead">{about.missionConclusion}</p>
               <Link href="/about" className="pro-link" style={{ marginTop: 18 }}>
                 About us →
               </Link>
