@@ -5,6 +5,7 @@ import { OpportunityCard } from "./OpportunityCard";
 import { SearchBar } from "./SearchBar";
 import { FilterSheet, OptionDef } from "./FilterSheet";
 import { usePersistentState } from "@/hooks/usePersistentState";
+import { useReducedMotion } from "@/hooks/useReducedMotion";
 
 // The three original categories keep their brand colors; anything an admin
 // adds beyond those (a brand-new "sheet") still shows up as its own filter
@@ -27,6 +28,7 @@ const LEVEL_DEFS: { key: string; label: string; test: (level: string) => boolean
 ];
 
 export function Board({ opportunities }: { opportunities: Opportunity[] }) {
+  const motionOK = !useReducedMotion();
   const [query, setQuery] = useState("");
   const [sheetOpen, setSheetOpen] = useState(false);
   const [categories, setCategories] = usePersistentState<string[]>("ypboard:categories", []);
@@ -137,8 +139,8 @@ export function Board({ opportunities }: { opportunities: Opportunity[] }) {
             Try a different search term or loosen your preferences.
           </div>
         ) : (
-          filtered.map((item) => (
-            <OpportunityCard key={item.id} item={item} />
+          filtered.map((item, i) => (
+            <OpportunityCard key={item.id} item={item} index={i} motionOK={motionOK} />
           ))
         )}
       </div>

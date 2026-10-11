@@ -39,9 +39,9 @@ export function EventCard({ event: e }: { event: YPEvent }) {
   );
 }
 
-export function EventGrid({ events, cols = 3 }: { events: YPEvent[]; cols?: 2 | 3 }) {
+export function EventGrid({ events, cols = 3 }: { events: YPEvent[]; cols?: 2 | 3 | 4 }) {
   return (
-    <div className={`pro-grid${cols === 3 ? " cols-3" : ""}`}>
+    <div className={`pro-grid${cols === 2 ? "" : ` cols-${cols}`}`}>
       {events.map((e) => (
         <EventCard key={e.slug} event={e} />
       ))}

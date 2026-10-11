@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Carousel } from "@/components/Carousel";
-import { EventCard } from "@/components/Gallery";
+import { EventCard, EventGrid } from "@/components/Gallery";
 import { SafeImage } from "@/components/SafeImage";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
@@ -35,6 +35,7 @@ export default async function Home() {
   const featured = (open.length >= 4 ? open : opportunities).slice(0, 4);
   const recent = sortByDate(events.filter((e) => !isNews(e) && !e.initiative)).slice(0, 6);
   const initiatives = sortByDate(events.filter((e) => e.initiative));
+  const activities = sortByDate(events).slice(0, 8);
   const taskForceCount = taskForce.reduce((n, c) => n + c.members.length, 0);
 
   return (
@@ -146,6 +147,20 @@ export default async function Home() {
                 ))}
               </Carousel>
             </div>
+          </section>
+
+          <section className="pro-section">
+            <div className="pro-section-head">
+              <div>
+                <span className="pro-kicker">Activities</span>
+                <h2>Our activities</h2>
+                <p className="pro-lead">Webinars, workshops, talks and challenges from the past year.</p>
+              </div>
+              <Link href="/events" className="pro-link">
+                See all {events.length} →
+              </Link>
+            </div>
+            <EventGrid events={activities} cols={4} />
           </section>
 
           <section className="pro-section">
