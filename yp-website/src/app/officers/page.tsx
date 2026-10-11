@@ -35,6 +35,12 @@ export default async function OfficersPage() {
                 <h2>Officers</h2>
               </div>
             </div>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/yp/executive-committee-banner.png"
+              alt={`${officersTerm} IEEE Young Professionals Tunisia Affinity Group Executive Committee`}
+              className="officers-banner"
+            />
             <OfficerGrid officers={officers} />
           </section>
 
