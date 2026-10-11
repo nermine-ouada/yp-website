@@ -1,0 +1,2078 @@
+{
+  "info": {
+    "name": "YP Board",
+    "description": "End-to-end tests for every endpoint of YP Board (https://ieee-yp-opportunities.vercel.app).\n\n**How it works.** Apart from `GET /admin/import/template`, the app's endpoints are Next.js Server Actions. Each Server Action is a POST to the page URL. The action ID inside each request changes on every deploy, so the requests don't hard-code it. Instead, each step first GETs the page, copies the form's hidden `$ACTION_*` fields, and replays them as `multipart/form-data`. The bulk import action has no form, so its ID is read from the page's JS chunks. It's called with a `Next-Action` header.\n\n**Setup.** Set the `adminPassword` collection variable, using the *Current value* column so the password isn't saved or exported. Then run the whole collection in order with the Collection Runner. The admin session lasts 15 minutes.\n\n**Data.** The run creates rows titled `postman-test-<runId>` and `postman-bulk-<runId>`, then permanently deletes them. It doesn't touch any other rows. **Empty trash** is skipped unless `allowDestructive` is `true`, because it hard-deletes *every* trashed row.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "https://ieee-yp-opportunities.vercel.app"
+    },
+    {
+      "key": "adminPassword",
+      "value": ""
+    },
+    {
+      "key": "allowDestructive",
+      "value": "false"
+    },
+    {
+      "key": "runId",
+      "value": ""
+    },
+    {
+      "key": "form",
+      "value": ""
+    },
+    {
+      "key": "oppId",
+      "value": ""
+    },
+    {
+      "key": "bulkId",
+      "value": ""
+    },
+    {
+      "key": "bulkActionId",
+      "value": ""
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Server Actions reject requests whose Origin doesn't match the host (CSRF check).",
+          "if (pm.request.method === 'POST') {",
+          "  pm.request.headers.upsert({ key: 'Origin', value: pm.variables.get('baseUrl') });",
+          "}"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "0. Public API",
+      "description": "`GET /api/opportunities`: public, read-only JSON with filters. Use this one for external integrations.",
+      "item": [
+        {
+          "name": "List all opportunities",
+          "protocolProfileBehavior": {
+            "followRedirects": false
+          },
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/opportunities",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "opportunities"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('JSON envelope', () => { pm.expect(body).to.include.keys('total', 'count', 'limit', 'offset', 'data'); pm.expect(body.data).to.be.an('array'); });",
+                  "pm.test('count matches data', () => pm.expect(body.count).to.eql(body.data.length));",
+                  "pm.test('CORS header', () => pm.expect(pm.response.headers.get('Access-Control-Allow-Origin')).to.eql('*'));",
+                  "if (body.data[0]) pm.test('item shape', () => pm.expect(body.data[0]).to.include.keys('id', 'sheet', 'title', 'category', 'level', 'who', 'award', 'deadline', 'status', 'membership', 'notes', 'link', 'createdAt', 'updatedAt'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Filter: sheet + status",
+          "protocolProfileBehavior": {
+            "followRedirects": false
+          },
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/opportunities?sheet=Scholarships&status=open",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "opportunities"
+              ],
+              "query": [
+                {
+                  "key": "sheet",
+                  "value": "Scholarships"
+                },
+                {
+                  "key": "status",
+                  "value": "open"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('every row matches', () => body.data.forEach((o) => { pm.expect(o.sheet.toLowerCase()).to.include('scholarships'); pm.expect(o.status.toLowerCase()).to.include('open'); }));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Filter: repeated level (OR)",
+          "protocolProfileBehavior": {
+            "followRedirects": false
+          },
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/opportunities?level=Graduate&level=women",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "opportunities"
+              ],
+              "query": [
+                {
+                  "key": "level",
+                  "value": "Graduate"
+                },
+                {
+                  "key": "level",
+                  "value": "women"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('every row matches one level', () => body.data.forEach((o) => pm.expect(/graduate|women/i.test(o.level)).to.be.true));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Search + paging",
+          "protocolProfileBehavior": {
+            "followRedirects": false
+          },
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/opportunities?q=ieee&limit=2&offset=1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "opportunities"
+              ],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "ieee"
+                },
+                {
+                  "key": "limit",
+                  "value": "2"
+                },
+                {
+                  "key": "offset",
+                  "value": "1"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('paging applied', () => { pm.expect(body.limit).to.eql(2); pm.expect(body.offset).to.eql(1); pm.expect(body.count).to.be.at.most(2); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Updated since (future: empty)",
+          "protocolProfileBehavior": {
+            "followRedirects": false
+          },
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/opportunities?updatedSince=2099-01-01T00:00:00Z",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "opportunities"
+              ],
+              "query": [
+                {
+                  "key": "updatedSince",
+                  "value": "2099-01-01T00:00:00Z"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('no rows', () => pm.expect(pm.response.json().total).to.eql(0));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Invalid limit: 400",
+          "protocolProfileBehavior": {
+            "followRedirects": false
+          },
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/opportunities?limit=abc",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "opportunities"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "abc"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 400', () => pm.response.to.have.status(400));",
+                  "pm.test('JSON error', () => pm.expect(pm.response.json().error).to.be.a('string'));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "1. Public & access control",
+      "description": "No session needed. These requests send no cookies.",
+      "item": [
+        {
+          "name": "Public board",
+          "protocolProfileBehavior": {
+            "followRedirects": false
+          },
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": []
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('runId', String(Date.now()));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('is HTML', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('text/html'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Admin without session → login",
+          "protocolProfileBehavior": {
+            "followRedirects": false,
+            "disableCookies": true
+          },
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 307', () => pm.response.to.have.status(307));",
+                  "pm.test('redirects to /\\/admin\\/login\\?from=%2Fadmin$/', () => pm.expect(pm.response.headers.get('Location') || '').to.match(/\\/admin\\/login\\?from=%2Fadmin$/));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Template without session → login",
+          "protocolProfileBehavior": {
+            "followRedirects": false,
+            "disableCookies": true
+          },
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/import/template",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "import",
+                "template"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 307', () => pm.response.to.have.status(307));",
+                  "pm.test('redirects to /\\/admin\\/login\\?from=%2Fadmin%2Fimport%2Ftemplate$/', () => pm.expect(pm.response.headers.get('Location') || '').to.match(/\\/admin\\/login\\?from=%2Fadmin%2Fimport%2Ftemplate$/));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "2. Auth",
+      "description": "`login` Server Action.",
+      "item": [
+        {
+          "name": "Login page (capture form)",
+          "protocolProfileBehavior": {
+            "followRedirects": false
+          },
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "login"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));",
+                  "",
+                  "const $ = require('cheerio').load(pm.response.text());",
+                  "const form = $('form').filter((i, f) => { const el = $(f); return el.find('input[name=\"password\"]').length > 0; }).first();",
+                  "pm.test('target form found on page', () => pm.expect(form.length).to.eql(1));",
+                  "const fields = form.find('input[type=\"hidden\"]').map((i, el) => ({ key: $(el).attr('name'), value: $(el).attr('value') || '' })).get();",
+                  "pm.test('form carries a Server Action reference', () => pm.expect(fields.some((f) => f.key.startsWith('$ACTION_'))).to.be.true);",
+                  "pm.collectionVariables.set('form', JSON.stringify(fields));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login: wrong password",
+          "protocolProfileBehavior": {
+            "followRedirects": false
+          },
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "formdata",
+              "formdata": []
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const fields = JSON.parse(pm.collectionVariables.get('form') || '[]');",
+                  "const extra = { password: 'definitely-wrong-' + Date.now() };",
+                  "const all = fields.concat(Object.entries(extra).map(([key, value]) => ({ key, value })));",
+                  "pm.request.body.update({ mode: 'formdata', formdata: all.map((f) => ({ key: f.key, value: String(f.value), type: 'text' })) });"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 303', () => pm.response.to.have.status(303));",
+                  "pm.test('redirects to /\\/admin\\/login\\?error=1/', () => pm.expect(pm.response.headers.get('Location') || '').to.match(/\\/admin\\/login\\?error=1/));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login: correct password",
+          "protocolProfileBehavior": {
+            "followRedirects": false
+          },
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "formdata",
+              "formdata": []
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.variables.get('adminPassword')) throw new Error('Set the adminPassword variable first.');",
+                  "const fields = JSON.parse(pm.collectionVariables.get('form') || '[]');",
+                  "const extra = { password: pm.variables.get('adminPassword') };",
+                  "const all = fields.concat(Object.entries(extra).map(([key, value]) => ({ key, value })));",
+                  "pm.request.body.update({ mode: 'formdata', formdata: all.map((f) => ({ key: f.key, value: String(f.value), type: 'text' })) });"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 303', () => pm.response.to.have.status(303));",
+                  "pm.test('redirects to /\\/admin$/', () => pm.expect(pm.response.headers.get('Location') || '').to.match(/\\/admin$/));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "3. Import template",
+      "description": "`GET /admin/import/template` route handler.",
+      "item": [
+        {
+          "name": "Download template",
+          "protocolProfileBehavior": {
+            "followRedirects": false
+          },
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/import/template",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "import",
+                "template"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('is xlsx', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('spreadsheetml.sheet'));",
+                  "pm.test('attachment filename', () => pm.expect(pm.response.headers.get('Content-Disposition')).to.include('yp-board-import-template.xlsx'));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "4. Opportunity lifecycle",
+      "description": "create, hide, show, update, soft delete, recover, soft delete, permanent delete, all on one test row.",
+      "item": [
+        {
+          "name": "New page (capture create form)",
+          "protocolProfileBehavior": {
+            "followRedirects": false
+          },
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/new",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "new"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));",
+                  "",
+                  "const $ = require('cheerio').load(pm.response.text());",
+                  "const form = $('form').filter((i, f) => { const el = $(f); return el.find('input[name=\"title\"]').length > 0; }).first();",
+                  "pm.test('target form found on page', () => pm.expect(form.length).to.eql(1));",
+                  "const fields = form.find('input[type=\"hidden\"]').map((i, el) => ({ key: $(el).attr('name'), value: $(el).attr('value') || '' })).get();",
+                  "pm.test('form carries a Server Action reference', () => pm.expect(fields.some((f) => f.key.startsWith('$ACTION_'))).to.be.true);",
+                  "pm.collectionVariables.set('form', JSON.stringify(fields));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "createOpportunity",
+          "protocolProfileBehavior": {
+            "followRedirects": false
+          },
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/new",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "new"
+              ]
+            },
+            "body": {
+              "mode": "formdata",
+              "formdata": []
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const fields = JSON.parse(pm.collectionVariables.get('form') || '[]');",
+                  "const extra = {",
+                  "  sheet: 'Scholarships',",
+                  "  title: 'postman-test-' + pm.collectionVariables.get('runId'),",
+                  "  category: 'Postman test',",
+                  "  level: 'Undergraduate',",
+                  "  who: 'Automated API test row, safe to delete.',",
+                  "  award: '$0',",
+                  "  deadline: 'Never',",
+                  "  status: 'Open',",
+                  "  membership: 'No',",
+                  "  notes: 'Created by the Postman collection.',",
+                  "  link: 'https://example.com'",
+                  "};",
+                  "const all = fields.concat(Object.entries(extra).map(([key, value]) => ({ key, value })));",
+                  "pm.request.body.update({ mode: 'formdata', formdata: all.map((f) => ({ key: f.key, value: String(f.value), type: 'text' })) });"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 303', () => pm.response.to.have.status(303));",
+                  "pm.test('redirects to /\\/admin$/', () => pm.expect(pm.response.headers.get('Location') || '').to.match(/\\/admin$/));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Find created row",
+          "protocolProfileBehavior": {
+            "followRedirects": false
+          },
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin?q=postman-test-{{runId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin"
+              ],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "postman-test-{{runId}}"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));",
+                  "const title = 'postman-test-' + pm.collectionVariables.get('runId');",
+                  "",
+                  "const $ = require('cheerio').load(pm.response.text());",
+                  "const form = $('form').filter((i, f) => { const el = $(f); return el.find('input[name=\"id\"]').length > 0 && el.find('input[name=\"hidden\"]').length === 0 && el.closest('tr').text().includes(title); }).first();",
+                  "pm.test('target form found on page', () => pm.expect(form.length).to.eql(1));",
+                  "const fields = form.find('input[type=\"hidden\"]').map((i, el) => ({ key: $(el).attr('name'), value: $(el).attr('value') || '' })).get();",
+                  "pm.test('form carries a Server Action reference', () => pm.expect(fields.some((f) => f.key.startsWith('$ACTION_'))).to.be.true);",
+                  "pm.collectionVariables.set('form', JSON.stringify(fields));",
+                  "const id = form.find('input[name=\"id\"]').attr('value');",
+                  "pm.test('row id found', () => pm.expect(id).to.be.a('string').and.not.empty);",
+                  "pm.collectionVariables.set('oppId', id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Public board shows new row",
+          "protocolProfileBehavior": {
+            "followRedirects": false
+          },
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": []
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('title is on the board', () => pm.expect(pm.response.text()).to.include('postman-test-' + pm.collectionVariables.get('runId')));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Dashboard (capture hide form)",
+          "protocolProfileBehavior": {
+            "followRedirects": false
+          },
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin?q=postman-test-{{runId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin"
+              ],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "postman-test-{{runId}}"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));",
+                  "const title = 'postman-test-' + pm.collectionVariables.get('runId');",
+                  "",
+                  "const $ = require('cheerio').load(pm.response.text());",
+                  "const form = $('form').filter((i, f) => { const el = $(f); return el.find('input[name=\"hidden\"][value=\"true\"]').length > 0 && el.closest('tr').text().includes(title); }).first();",
+                  "pm.test('target form found on page', () => pm.expect(form.length).to.eql(1));",
+                  "const fields = form.find('input[type=\"hidden\"]').map((i, el) => ({ key: $(el).attr('name'), value: $(el).attr('value') || '' })).get();",
+                  "pm.test('form carries a Server Action reference', () => pm.expect(fields.some((f) => f.key.startsWith('$ACTION_'))).to.be.true);",
+                  "pm.collectionVariables.set('form', JSON.stringify(fields));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "setOpportunityHidden (hide)",
+          "protocolProfileBehavior": {
+            "followRedirects": false
+          },
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin"
+              ]
+            },
+            "body": {
+              "mode": "formdata",
+              "formdata": []
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const fields = JSON.parse(pm.collectionVariables.get('form') || '[]');",
+                  "const extra = {};",
+                  "const all = fields.concat(Object.entries(extra).map(([key, value]) => ({ key, value })));",
+                  "pm.request.body.update({ mode: 'formdata', formdata: all.map((f) => ({ key: f.key, value: String(f.value), type: 'text' })) });"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200 (re-renders, no redirect)', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Public API excludes hidden row",
+          "protocolProfileBehavior": {
+            "followRedirects": false
+          },
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/opportunities?q=postman-test-{{runId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "opportunities"
+              ],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "postman-test-{{runId}}"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('hidden row not returned', () => pm.expect(pm.response.json().total).to.eql(0));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Dashboard shows Hidden (capture show form)",
+          "protocolProfileBehavior": {
+            "followRedirects": false
+          },
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin?q=postman-test-{{runId}}&visibility=hidden",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin"
+              ],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "postman-test-{{runId}}"
+                },
+                {
+                  "key": "visibility",
+                  "value": "hidden"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));",
+                  "const title = 'postman-test-' + pm.collectionVariables.get('runId');",
+                  "",
+                  "const $ = require('cheerio').load(pm.response.text());",
+                  "const form = $('form').filter((i, f) => { const el = $(f); return el.find('input[name=\"hidden\"][value=\"false\"]').length > 0 && el.closest('tr').text().includes(title); }).first();",
+                  "pm.test('target form found on page', () => pm.expect(form.length).to.eql(1));",
+                  "const fields = form.find('input[type=\"hidden\"]').map((i, el) => ({ key: $(el).attr('name'), value: $(el).attr('value') || '' })).get();",
+                  "pm.test('form carries a Server Action reference', () => pm.expect(fields.some((f) => f.key.startsWith('$ACTION_'))).to.be.true);",
+                  "pm.collectionVariables.set('form', JSON.stringify(fields));",
+                  "pm.test('row marked Hidden', () => pm.expect(form.closest('tr').find('.admin-hidden-badge').length).to.eql(1));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "setOpportunityHidden (show)",
+          "protocolProfileBehavior": {
+            "followRedirects": false
+          },
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin"
+              ]
+            },
+            "body": {
+              "mode": "formdata",
+              "formdata": []
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const fields = JSON.parse(pm.collectionVariables.get('form') || '[]');",
+                  "const extra = {};",
+                  "const all = fields.concat(Object.entries(extra).map(([key, value]) => ({ key, value })));",
+                  "pm.request.body.update({ mode: 'formdata', formdata: all.map((f) => ({ key: f.key, value: String(f.value), type: 'text' })) });"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200 (re-renders, no redirect)', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Public API includes shown row",
+          "protocolProfileBehavior": {
+            "followRedirects": false
+          },
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/opportunities?q=postman-test-{{runId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "opportunities"
+              ],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "postman-test-{{runId}}"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('row returned again', () => pm.expect(pm.response.json().total).to.eql(1));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Edit page (capture update form)",
+          "protocolProfileBehavior": {
+            "followRedirects": false
+          },
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/{{oppId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "{{oppId}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));",
+                  "",
+                  "const $ = require('cheerio').load(pm.response.text());",
+                  "const form = $('form').filter((i, f) => { const el = $(f); return el.find('input[name=\"title\"]').length > 0; }).first();",
+                  "pm.test('target form found on page', () => pm.expect(form.length).to.eql(1));",
+                  "const fields = form.find('input[type=\"hidden\"]').map((i, el) => ({ key: $(el).attr('name'), value: $(el).attr('value') || '' })).get();",
+                  "pm.test('form carries a Server Action reference', () => pm.expect(fields.some((f) => f.key.startsWith('$ACTION_'))).to.be.true);",
+                  "pm.collectionVariables.set('form', JSON.stringify(fields));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "updateOpportunity",
+          "protocolProfileBehavior": {
+            "followRedirects": false
+          },
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/{{oppId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "{{oppId}}"
+              ]
+            },
+            "body": {
+              "mode": "formdata",
+              "formdata": []
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const fields = JSON.parse(pm.collectionVariables.get('form') || '[]');",
+                  "const extra = {",
+                  "  sheet: 'Scholarships',",
+                  "  title: 'postman-test-' + pm.collectionVariables.get('runId') + '-updated',",
+                  "  category: 'Postman test',",
+                  "  level: 'Undergraduate',",
+                  "  who: 'Automated API test row, safe to delete.',",
+                  "  award: '$0',",
+                  "  deadline: 'Never',",
+                  "  status: 'Open',",
+                  "  membership: 'No',",
+                  "  notes: 'Created by the Postman collection.',",
+                  "  link: 'https://example.com'",
+                  "};",
+                  "const all = fields.concat(Object.entries(extra).map(([key, value]) => ({ key, value })));",
+                  "pm.request.body.update({ mode: 'formdata', formdata: all.map((f) => ({ key: f.key, value: String(f.value), type: 'text' })) });"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 303', () => pm.response.to.have.status(303));",
+                  "pm.test('redirects to /\\/admin$/', () => pm.expect(pm.response.headers.get('Location') || '').to.match(/\\/admin$/));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Verify update (capture delete form)",
+          "protocolProfileBehavior": {
+            "followRedirects": false
+          },
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin?q=postman-test-{{runId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin"
+              ],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "postman-test-{{runId}}"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));",
+                  "const title = 'postman-test-' + pm.collectionVariables.get('runId') + '-updated';",
+                  "",
+                  "const $ = require('cheerio').load(pm.response.text());",
+                  "const form = $('form').filter((i, f) => { const el = $(f); return el.find('input[name=\"id\"]').length > 0 && el.find('input[name=\"hidden\"]').length === 0 && el.closest('tr').text().includes(title); }).first();",
+                  "pm.test('target form found on page', () => pm.expect(form.length).to.eql(1));",
+                  "const fields = form.find('input[type=\"hidden\"]').map((i, el) => ({ key: $(el).attr('name'), value: $(el).attr('value') || '' })).get();",
+                  "pm.test('form carries a Server Action reference', () => pm.expect(fields.some((f) => f.key.startsWith('$ACTION_'))).to.be.true);",
+                  "pm.collectionVariables.set('form', JSON.stringify(fields));",
+                  "const id = form.find('input[name=\"id\"]').attr('value');",
+                  "pm.test('row id found', () => pm.expect(id).to.be.a('string').and.not.empty);",
+                  "pm.collectionVariables.set('oppId', id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "deleteOpportunity (soft)",
+          "protocolProfileBehavior": {
+            "followRedirects": false
+          },
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin"
+              ]
+            },
+            "body": {
+              "mode": "formdata",
+              "formdata": []
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const fields = JSON.parse(pm.collectionVariables.get('form') || '[]');",
+                  "const extra = {};",
+                  "const all = fields.concat(Object.entries(extra).map(([key, value]) => ({ key, value })));",
+                  "pm.request.body.update({ mode: 'formdata', formdata: all.map((f) => ({ key: f.key, value: String(f.value), type: 'text' })) });"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 303', () => pm.response.to.have.status(303));",
+                  "pm.test('redirects to /\\/admin$/', () => pm.expect(pm.response.headers.get('Location') || '').to.match(/\\/admin$/));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Public board hides trashed row",
+          "protocolProfileBehavior": {
+            "followRedirects": false
+          },
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": []
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('title is gone from the board', () => pm.expect(pm.response.text()).not.to.include('postman-test-' + pm.collectionVariables.get('runId')));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Trash (capture recover form)",
+          "protocolProfileBehavior": {
+            "followRedirects": false
+          },
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/trash",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "trash"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));",
+                  "const id = pm.collectionVariables.get('oppId');",
+                  "",
+                  "const $ = require('cheerio').load(pm.response.text());",
+                  "const form = $('form').filter((i, f) => { const el = $(f); return el.find('input[name=\"id\"][value=\"' + id + '\"]').length > 0 && el.text().includes('Recover'); }).first();",
+                  "pm.test('target form found on page', () => pm.expect(form.length).to.eql(1));",
+                  "const fields = form.find('input[type=\"hidden\"]').map((i, el) => ({ key: $(el).attr('name'), value: $(el).attr('value') || '' })).get();",
+                  "pm.test('form carries a Server Action reference', () => pm.expect(fields.some((f) => f.key.startsWith('$ACTION_'))).to.be.true);",
+                  "pm.collectionVariables.set('form', JSON.stringify(fields));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "recoverOpportunity",
+          "protocolProfileBehavior": {
+            "followRedirects": false
+          },
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/trash",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "trash"
+              ]
+            },
+            "body": {
+              "mode": "formdata",
+              "formdata": []
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const fields = JSON.parse(pm.collectionVariables.get('form') || '[]');",
+                  "const extra = {};",
+                  "const all = fields.concat(Object.entries(extra).map(([key, value]) => ({ key, value })));",
+                  "pm.request.body.update({ mode: 'formdata', formdata: all.map((f) => ({ key: f.key, value: String(f.value), type: 'text' })) });"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 303', () => pm.response.to.have.status(303));",
+                  "pm.test('redirects to /\\/admin\\/trash$/', () => pm.expect(pm.response.headers.get('Location') || '').to.match(/\\/admin\\/trash$/));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Verify recovered (capture delete form)",
+          "protocolProfileBehavior": {
+            "followRedirects": false
+          },
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin?q=postman-test-{{runId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin"
+              ],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "postman-test-{{runId}}"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));",
+                  "const title = 'postman-test-' + pm.collectionVariables.get('runId') + '-updated';",
+                  "",
+                  "const $ = require('cheerio').load(pm.response.text());",
+                  "const form = $('form').filter((i, f) => { const el = $(f); return el.find('input[name=\"id\"]').length > 0 && el.find('input[name=\"hidden\"]').length === 0 && el.closest('tr').text().includes(title); }).first();",
+                  "pm.test('target form found on page', () => pm.expect(form.length).to.eql(1));",
+                  "const fields = form.find('input[type=\"hidden\"]').map((i, el) => ({ key: $(el).attr('name'), value: $(el).attr('value') || '' })).get();",
+                  "pm.test('form carries a Server Action reference', () => pm.expect(fields.some((f) => f.key.startsWith('$ACTION_'))).to.be.true);",
+                  "pm.collectionVariables.set('form', JSON.stringify(fields));",
+                  "const id = form.find('input[name=\"id\"]').attr('value');",
+                  "pm.test('row id found', () => pm.expect(id).to.be.a('string').and.not.empty);",
+                  "pm.collectionVariables.set('oppId', id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "deleteOpportunity (soft, again)",
+          "protocolProfileBehavior": {
+            "followRedirects": false
+          },
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin"
+              ]
+            },
+            "body": {
+              "mode": "formdata",
+              "formdata": []
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const fields = JSON.parse(pm.collectionVariables.get('form') || '[]');",
+                  "const extra = {};",
+                  "const all = fields.concat(Object.entries(extra).map(([key, value]) => ({ key, value })));",
+                  "pm.request.body.update({ mode: 'formdata', formdata: all.map((f) => ({ key: f.key, value: String(f.value), type: 'text' })) });"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 303', () => pm.response.to.have.status(303));",
+                  "pm.test('redirects to /\\/admin$/', () => pm.expect(pm.response.headers.get('Location') || '').to.match(/\\/admin$/));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Trash (capture permanent-delete form)",
+          "protocolProfileBehavior": {
+            "followRedirects": false
+          },
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/trash",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "trash"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));",
+                  "const id = pm.collectionVariables.get('oppId');",
+                  "",
+                  "const $ = require('cheerio').load(pm.response.text());",
+                  "const form = $('form').filter((i, f) => { const el = $(f); return el.find('input[name=\"id\"][value=\"' + id + '\"]').length > 0 && el.text().includes('Delete permanently'); }).first();",
+                  "pm.test('target form found on page', () => pm.expect(form.length).to.eql(1));",
+                  "const fields = form.find('input[type=\"hidden\"]').map((i, el) => ({ key: $(el).attr('name'), value: $(el).attr('value') || '' })).get();",
+                  "pm.test('form carries a Server Action reference', () => pm.expect(fields.some((f) => f.key.startsWith('$ACTION_'))).to.be.true);",
+                  "pm.collectionVariables.set('form', JSON.stringify(fields));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "permanentlyDeleteOpportunity",
+          "protocolProfileBehavior": {
+            "followRedirects": false
+          },
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/trash",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "trash"
+              ]
+            },
+            "body": {
+              "mode": "formdata",
+              "formdata": []
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const fields = JSON.parse(pm.collectionVariables.get('form') || '[]');",
+                  "const extra = {};",
+                  "const all = fields.concat(Object.entries(extra).map(([key, value]) => ({ key, value })));",
+                  "pm.request.body.update({ mode: 'formdata', formdata: all.map((f) => ({ key: f.key, value: String(f.value), type: 'text' })) });"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 303', () => pm.response.to.have.status(303));",
+                  "pm.test('redirects to /\\/admin\\/trash$/', () => pm.expect(pm.response.headers.get('Location') || '').to.match(/\\/admin\\/trash$/));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Verify gone from trash",
+          "protocolProfileBehavior": {
+            "followRedirects": false
+          },
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/trash",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "trash"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('row no longer in trash', () => pm.expect(pm.response.text()).not.to.include(pm.collectionVariables.get('oppId')));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "5. Bulk import",
+      "description": "`bulkCreateOpportunities` is called from client JS, not a form, so it's a fetch-style action: `Next-Action` header plus a JSON-encoded argument list. The test row is cleaned up afterwards.",
+      "item": [
+        {
+          "name": "Import page (find action id)",
+          "protocolProfileBehavior": {
+            "followRedirects": false
+          },
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/import",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "import"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));",
+                  "const $ = require('cheerio').load(pm.response.text());",
+                  "const base = pm.variables.get('baseUrl');",
+                  "const srcs = $('script[src]').map((i, el) => $(el).attr('src')).get().filter((s) => s.includes('/_next/static/'));",
+                  "pm.test('page has JS chunks', () => pm.expect(srcs.length).to.be.above(0));",
+                  "// Production (minified) and dev builds format the reference differently.",
+                  "const patterns = [",
+                  "  /createServerReference\\)\\(\"([0-9a-f]+)\"[^\"]*\"bulkCreateOpportunities\"/,",
+                  "  /\"([0-9a-f]{40,})\":\\{\"name\":\"bulkCreateOpportunities\"\\}/,",
+                  "];",
+                  "pm.collectionVariables.set('bulkActionId', '');",
+                  "let pending = srcs.length;",
+                  "srcs.forEach((src) => {",
+                  "  pm.sendRequest(src.startsWith('http') ? src : base + src, (err, res) => {",
+                  "    const text = err ? '' : res.text();",
+                  "    const m = patterns.map((re) => text.match(re)).find(Boolean);",
+                  "    if (m) pm.collectionVariables.set('bulkActionId', m[1]);",
+                  "    if (--pending === 0) {",
+                  "      pm.test('found bulkCreateOpportunities action id', () => pm.expect(pm.collectionVariables.get('bulkActionId')).to.match(/^[0-9a-f]+$/));",
+                  "    }",
+                  "  });",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "bulkCreateOpportunities",
+          "protocolProfileBehavior": {
+            "followRedirects": false
+          },
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Next-Action",
+                "value": "{{bulkActionId}}"
+              },
+              {
+                "key": "Accept",
+                "value": "text/x-component"
+              },
+              {
+                "key": "Content-Type",
+                "value": "text/plain;charset=UTF-8"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/import",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "import"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "[\n  [\n    {\n      \"sheet\": \"Internships\",\n      \"title\": \"postman-bulk-{{runId}}\",\n      \"category\": \"Postman test\",\n      \"level\": \"Graduate\",\n      \"who\": \"Automated API test row, safe to delete.\",\n      \"award\": \"$$1,000\",\n      \"deadline\": \"Never\",\n      \"status\": \"Open\",\n      \"membership\": \"No\",\n      \"notes\": \"\",\n      \"link\": \"https://example.com\"\n    }\n  ]\n]"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('returns { count: 1 }', () => pm.expect(pm.response.text()).to.include('\"count\":1'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Find bulk row (capture delete form)",
+          "protocolProfileBehavior": {
+            "followRedirects": false
+          },
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin?q=postman-bulk-{{runId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin"
+              ],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "postman-bulk-{{runId}}"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));",
+                  "const title = 'postman-bulk-' + pm.collectionVariables.get('runId');",
+                  "",
+                  "const $ = require('cheerio').load(pm.response.text());",
+                  "const form = $('form').filter((i, f) => { const el = $(f); return el.find('input[name=\"id\"]').length > 0 && el.find('input[name=\"hidden\"]').length === 0 && el.closest('tr').text().includes(title); }).first();",
+                  "pm.test('target form found on page', () => pm.expect(form.length).to.eql(1));",
+                  "const fields = form.find('input[type=\"hidden\"]').map((i, el) => ({ key: $(el).attr('name'), value: $(el).attr('value') || '' })).get();",
+                  "pm.test('form carries a Server Action reference', () => pm.expect(fields.some((f) => f.key.startsWith('$ACTION_'))).to.be.true);",
+                  "pm.collectionVariables.set('form', JSON.stringify(fields));",
+                  "const id = form.find('input[name=\"id\"]').attr('value');",
+                  "pm.test('row id found', () => pm.expect(id).to.be.a('string').and.not.empty);",
+                  "pm.collectionVariables.set('bulkId', id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Cleanup: soft delete bulk row",
+          "protocolProfileBehavior": {
+            "followRedirects": false
+          },
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin"
+              ]
+            },
+            "body": {
+              "mode": "formdata",
+              "formdata": []
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const fields = JSON.parse(pm.collectionVariables.get('form') || '[]');",
+                  "const extra = {};",
+                  "const all = fields.concat(Object.entries(extra).map(([key, value]) => ({ key, value })));",
+                  "pm.request.body.update({ mode: 'formdata', formdata: all.map((f) => ({ key: f.key, value: String(f.value), type: 'text' })) });"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 303', () => pm.response.to.have.status(303));",
+                  "pm.test('redirects to /\\/admin$/', () => pm.expect(pm.response.headers.get('Location') || '').to.match(/\\/admin$/));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Cleanup: trash (capture permanent-delete form)",
+          "protocolProfileBehavior": {
+            "followRedirects": false
+          },
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/trash",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "trash"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));",
+                  "const id = pm.collectionVariables.get('bulkId');",
+                  "",
+                  "const $ = require('cheerio').load(pm.response.text());",
+                  "const form = $('form').filter((i, f) => { const el = $(f); return el.find('input[name=\"id\"][value=\"' + id + '\"]').length > 0 && el.text().includes('Delete permanently'); }).first();",
+                  "pm.test('target form found on page', () => pm.expect(form.length).to.eql(1));",
+                  "const fields = form.find('input[type=\"hidden\"]').map((i, el) => ({ key: $(el).attr('name'), value: $(el).attr('value') || '' })).get();",
+                  "pm.test('form carries a Server Action reference', () => pm.expect(fields.some((f) => f.key.startsWith('$ACTION_'))).to.be.true);",
+                  "pm.collectionVariables.set('form', JSON.stringify(fields));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Cleanup: permanently delete bulk row",
+          "protocolProfileBehavior": {
+            "followRedirects": false
+          },
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/trash",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "trash"
+              ]
+            },
+            "body": {
+              "mode": "formdata",
+              "formdata": []
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const fields = JSON.parse(pm.collectionVariables.get('form') || '[]');",
+                  "const extra = {};",
+                  "const all = fields.concat(Object.entries(extra).map(([key, value]) => ({ key, value })));",
+                  "pm.request.body.update({ mode: 'formdata', formdata: all.map((f) => ({ key: f.key, value: String(f.value), type: 'text' })) });"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 303', () => pm.response.to.have.status(303));",
+                  "pm.test('redirects to /\\/admin\\/trash$/', () => pm.expect(pm.response.headers.get('Location') || '').to.match(/\\/admin\\/trash$/));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "6. ⚠️ Empty trash (destructive)",
+      "description": "Hard-deletes **every** row in the trash, including real ones. Skipped unless `allowDestructive` is `true`.",
+      "item": [
+        {
+          "name": "Trash (capture empty-trash form)",
+          "protocolProfileBehavior": {
+            "followRedirects": false
+          },
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/trash",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "trash"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.variables.get('allowDestructive') !== 'true') {",
+                  "  console.log('Skipped: set collection variable allowDestructive=true to run this request.');",
+                  "  pm.execution.skipRequest();",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));",
+                  "",
+                  "const $ = require('cheerio').load(pm.response.text());",
+                  "const form = $('form').filter((i, f) => { const el = $(f); return el.text().includes('Empty trash'); }).first();",
+                  "pm.test('target form found on page', () => pm.expect(form.length).to.eql(1));",
+                  "const fields = form.find('input[type=\"hidden\"]').map((i, el) => ({ key: $(el).attr('name'), value: $(el).attr('value') || '' })).get();",
+                  "pm.test('form carries a Server Action reference', () => pm.expect(fields.some((f) => f.key.startsWith('$ACTION_'))).to.be.true);",
+                  "pm.collectionVariables.set('form', JSON.stringify(fields));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "emptyTrash",
+          "protocolProfileBehavior": {
+            "followRedirects": false
+          },
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/trash",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "trash"
+              ]
+            },
+            "body": {
+              "mode": "formdata",
+              "formdata": []
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.variables.get('allowDestructive') !== 'true') {",
+                  "  console.log('Skipped: set collection variable allowDestructive=true to run this request.');",
+                  "  pm.execution.skipRequest();",
+                  "}",
+                  "const fields = JSON.parse(pm.collectionVariables.get('form') || '[]');",
+                  "const extra = {};",
+                  "const all = fields.concat(Object.entries(extra).map(([key, value]) => ({ key, value })));",
+                  "pm.request.body.update({ mode: 'formdata', formdata: all.map((f) => ({ key: f.key, value: String(f.value), type: 'text' })) });"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 303', () => pm.response.to.have.status(303));",
+                  "pm.test('redirects to /\\/admin\\/trash$/', () => pm.expect(pm.response.headers.get('Location') || '').to.match(/\\/admin\\/trash$/));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "7. Logout",
+      "description": "`logout` Server Action, then confirm the session is gone.",
+      "item": [
+        {
+          "name": "Dashboard (capture logout form)",
+          "protocolProfileBehavior": {
+            "followRedirects": false
+          },
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));",
+                  "",
+                  "const $ = require('cheerio').load(pm.response.text());",
+                  "const form = $('form').filter((i, f) => { const el = $(f); return el.text().includes('Log out'); }).first();",
+                  "pm.test('target form found on page', () => pm.expect(form.length).to.eql(1));",
+                  "const fields = form.find('input[type=\"hidden\"]').map((i, el) => ({ key: $(el).attr('name'), value: $(el).attr('value') || '' })).get();",
+                  "pm.test('form carries a Server Action reference', () => pm.expect(fields.some((f) => f.key.startsWith('$ACTION_'))).to.be.true);",
+                  "pm.collectionVariables.set('form', JSON.stringify(fields));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "logout",
+          "protocolProfileBehavior": {
+            "followRedirects": false
+          },
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin"
+              ]
+            },
+            "body": {
+              "mode": "formdata",
+              "formdata": []
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const fields = JSON.parse(pm.collectionVariables.get('form') || '[]');",
+                  "const extra = {};",
+                  "const all = fields.concat(Object.entries(extra).map(([key, value]) => ({ key, value })));",
+                  "pm.request.body.update({ mode: 'formdata', formdata: all.map((f) => ({ key: f.key, value: String(f.value), type: 'text' })) });"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 303', () => pm.response.to.have.status(303));",
+                  "pm.test('redirects to /\\/admin\\/login$/', () => pm.expect(pm.response.headers.get('Location') || '').to.match(/\\/admin\\/login$/));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Admin after logout → login",
+          "protocolProfileBehavior": {
+            "followRedirects": false
+          },
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 307', () => pm.response.to.have.status(307));",
+                  "pm.test('redirects to /\\/admin\\/login\\?from=%2Fadmin$/', () => pm.expect(pm.response.headers.get('Location') || '').to.match(/\\/admin\\/login\\?from=%2Fadmin$/));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

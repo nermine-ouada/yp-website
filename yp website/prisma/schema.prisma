@@ -1,0 +1,35 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// One flat table: every opportunity (scholarship, fellowship or internship)
+// is the same shape, so a single relational table fits better than separate
+// per-category tables or a document store.
+model Opportunity {
+  id         String   @id @default(cuid())
+  sheet      String // "Scholarships" | "PhD & Fellowships" | "Internships"
+  sortOrder  Int      @default(0)
+  title      String
+  category   String
+  level      String
+  who        String
+  award      String
+  deadline   String
+  status     String
+  membership String
+  notes      String
+  link       String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  deletedAt  DateTime? // soft delete: non-null = sitting in the admin trash
+  hidden     Boolean  @default(false) // hidden from the public board/API, still listed in admin
+
+  @@index([sheet])
+  @@index([deletedAt])
+  @@index([hidden])
+}
