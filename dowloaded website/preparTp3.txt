@@ -1,0 +1,26 @@
+/******* Preparation du TP******/
+
+
+SQL> DROP TABLE Membref;
+
+SQL> CREATE TABLE MembreF (nomem NUMERIC(7) NOT NULL CONSTRAINT memb_nomem_pk PRIMARY KEY,
+prenom VARCHAR(25)NOT NULL,
+statut VARCHAR(5) NOT NULL CHECK (statut IN ('fille','fils', 'pere','mere', 'autre')),
+daten DATE NOT NULL,
+cin NUMERIC(8) UNIQUE,
+ecole numeric(1) NOT NULL CHECK (ecole IN (0,1)),
+Handicap numeric(1) NOT NULL CHECK (handicap IN (0,1)),
+remarque VARCHAR(60),
+nofam NUMERIC(7),
+CONSTRAINT membre_nofam_fk FOREIGN KEY (nofam) REFERENCES Famille(nofam));
+
+SQL> INSERT INTO MembreF (nomem,prenom,statut,daten,cin,ecole,handicap,remarque,nofam) VALUES (Seq_joker.NEXTVAL, 'Rabia', 'mere','23/04/1972',76543219,0,0, 'sans emploi', 1);
+
+SQL>INSERT INTO MembreF (nomem,prenom,statut,daten,ecole,handicap,nofam) VALUES (Seq_joker.NEXTVAL, 'Sana', 'fille','09/12/2001',1,0, 1);
+
+SQL>INSERT INTO MembreF (nomem,prenom,statut,daten,ecole,handicap,remarque,nofam) VALUES (Seq_joker.NEXTVAL,'Amir','fils','20/08/2008',1, 1, 'suit un traitement suite à des brulures au visage',4);
+
+SQL> update adherent SET nomadh='Bensaid' WHERE nomadh='Ben said';
+
+SQL>COMMIT;
+
