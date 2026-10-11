@@ -4,14 +4,18 @@ import { CommitteeTabs } from "@/components/TeamTabs";
 import { PagedMembers } from "@/components/Pagination";
 import { PageHero, SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
-import { ambassadors, graduatesFirst, officers, officersTerm, taskForce } from "@/data/ypTunisia";
+import { graduatesFirst } from "@/data/ypTunisia";
+import { getSite, getTeam } from "@/lib/content";
 
 export const metadata: Metadata = {
   title: "Officers",
-  description: `The ${officersTerm} executive committee, YP Task Force and ambassadors of the IEEE Young Professionals Tunisia Affinity Group.`,
+  description: "The executive committee, YP Task Force and ambassadors of the IEEE Young Professionals Tunisia Affinity Group.",
 };
 
-export default function OfficersPage() {
+export const revalidate = 60;
+
+export default async function OfficersPage() {
+  const [{ officersTerm }, { officers, taskForce, ambassadors }] = await Promise.all([getSite(), getTeam()]);
   const taskForceCount = taskForce.reduce((n, c) => n + c.members.length, 0);
 
   return (

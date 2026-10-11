@@ -2,15 +2,19 @@ import type { Metadata } from "next";
 import { PagedEvents } from "@/components/Pagination";
 import { PageHero, SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
-import { events, isNews, isUpcoming, sortByDate } from "@/data/events";
+import { isNews, isUpcoming, sortByDate } from "@/data/events";
+import { getEvents } from "@/lib/content";
 
 export const metadata: Metadata = {
   title: "Events and Conferences",
   description: "Webinars, workshops, TSYP challenges and collaborations from IEEE YP Tunisia.",
 };
 
-export default function EventsPage() {
-  const all = sortByDate(events);
+// Content is edited from the dashboard, which also refreshes this page on save.
+export const revalidate = 60;
+
+export default async function EventsPage() {
+  const all = sortByDate(await getEvents());
   const upcoming = all.filter((e) => isUpcoming(e)).reverse();
   const initiatives = all.filter((e) => e.initiative && !isUpcoming(e));
   const news = all.filter(isNews);

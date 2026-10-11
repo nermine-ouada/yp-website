@@ -33,3 +33,73 @@ model Opportunity {
   @@index([deletedAt])
   @@index([hidden])
 }
+
+// Events, talks, challenges, partnerships and announcements shown on /events.
+// List fields are plain string arrays; speakers/moderator are small JSON
+// objects ({ name, title? }) so the dashboard can edit them as lines of text.
+model Event {
+  id              String   @id @default(cuid())
+  slug            String   @unique // URL id: /events/<slug>
+  title           String
+  type            String // Webinar, Workshop, Talk, ...
+  date            String? // ISO date yyyy-mm-dd
+  time            String? // as announced, e.g. "6:00 PM CEST"
+  format          String? // "Online" | "In person"
+  venue           String? // platform when online, place when in person
+  partOf          String? // wider programme, e.g. "TSYP 13"
+  hosts           String[]
+  coHosts         String[]
+  speakers        Json     @default("[]")
+  moderator       Json?
+  summary         String
+  description     String?
+  images          String[] // first one is the cover
+  registrationUrl String?
+  initiative      Boolean  @default(false) // "Collaborations and initiatives"
+  hidden          Boolean  @default(false)
+  deletedAt       DateTime? // soft delete: non-null = in the dashboard trash
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([hidden])
+  @@index([deletedAt])
+}
+
+// Everyone on the team page: officers, YP Task Force members and ambassadors.
+model Person {
+  id         String   @id @default(cuid())
+  group      String // "officer" | "taskforce" | "ambassador"
+  name       String
+  role       String? // Chair, Member, Treasurer, ...
+  committee  String? // task force committee
+  branch     String? // ambassador's student branch
+  membership String? // "Member" | "Graduate Student Member" | "Student Member"
+  photo      String?
+  facebook   String?
+  sortOrder  Int      @default(0)
+  hidden     Boolean  @default(false)
+  deletedAt  DateTime? // soft delete: non-null = in the dashboard trash
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([group, hidden])
+  @@index([deletedAt])
+}
+
+// Editable site text (about, contact, stats, links...). One JSON document per
+// key; the code supplies defaults for anything not saved yet.
+model Setting {
+  key       String   @id
+  value     Json
+  updatedAt DateTime @updatedAt
+}
+
+// Images uploaded from the dashboard, served from /api/uploads/<id>.
+model Upload {
+  id          String   @id @default(cuid())
+  filename    String
+  contentType String
+  size        Int
+  data        Bytes
+  createdAt   DateTime @default(now())
+}

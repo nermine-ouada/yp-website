@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { PageHero, SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { countOpportunities } from "@/lib/opportunities";
+import { getSite } from "@/lib/content";
 
 export const metadata: Metadata = {
   title: "YP Tunisia AG Task Force Links",
@@ -100,8 +101,13 @@ const LINKS = [
 ];
 
 export default async function LinksPage() {
-  const count = await countOpportunities();
-  const links = LINKS.map((l) => ({ ...l, sub: l.sub.replace("{count}", String(count)) }));
+  const [count, { contact }] = await Promise.all([countOpportunities(), getSite()]);
+  // Email and Facebook come from the dashboard's site settings.
+  const links = LINKS.map((l) => ({
+    ...l,
+    href: l.href.startsWith("mailto:") ? `mailto:${contact.email}` : l.href.includes("facebook.com") ? contact.facebook : l.href,
+    sub: l.sub.replace("{count}", String(count)).replace("yp@ieee.tn", contact.email),
+  }));
 
   return (
     <div className="pro-page">

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { PageHero, SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
-import { about, site } from "@/data/ypTunisia";
+import { getSite } from "@/lib/content";
 
 export const metadata: Metadata = {
   title: "About",
@@ -70,7 +70,11 @@ const PILLARS = [
   },
 ];
 
-export default function AboutPage() {
+export const revalidate = 60;
+
+export default async function AboutPage() {
+  const site = await getSite();
+  const { about } = site;
   return (
     <div className="pro-page">
       <SiteHeader />
@@ -85,19 +89,39 @@ export default function AboutPage() {
               <div>
                 <span className="pro-kicker">Mission</span>
                 <h2>Our mission</h2>
-                <p className="pro-lead">{about.mission.summary}</p>
+                <p className="pro-lead">{about.missionSummary}</p>
               </div>
             </div>
             <div className="pro-grid cols-3">
-              {about.mission.points.map((pt) => (
+              {about.missionPoints.map((pt) => (
                 <div className="pro-card" key={pt}>
                   <p>{pt}</p>
                 </div>
               ))}
             </div>
             <p className="pro-text" style={{ marginTop: 24 }}>
-              {about.mission.conclusion}
+              {about.missionConclusion}
             </p>
+          </section>
+
+          <section className="pro-section split split-5-7">
+            <div>
+              <span className="pro-kicker">Video</span>
+              <h2 className="pro-h2">Know more about IEEE Young Professionals</h2>
+              <p className="pro-lead">
+                A short introduction to the global IEEE Young Professionals community and what it
+                offers early-career engineers.
+              </p>
+            </div>
+            <div className="pro-video">
+              <iframe
+                src={`https://www.youtube-nocookie.com/embed/${site.introVideoId}`}
+                title="Know more about IEEE Young Professionals"
+                loading="lazy"
+                allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              />
+            </div>
           </section>
 
           <section className="pro-section">
@@ -105,12 +129,12 @@ export default function AboutPage() {
               <div>
                 <span className="pro-kicker">Values</span>
                 <h2>What we value</h2>
-                <p className="pro-lead">{about.values.intro}</p>
+                <p className="pro-lead">{about.valuesIntro}</p>
               </div>
             </div>
             <div className="pro-card">
               <ul>
-                {about.values.points.map((pt) => (
+                {about.valuesPoints.map((pt) => (
                   <li key={pt}>{pt[0].toUpperCase() + pt.slice(1)}</li>
                 ))}
               </ul>

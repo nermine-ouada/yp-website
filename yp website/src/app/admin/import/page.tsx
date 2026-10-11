@@ -7,17 +7,14 @@ export default function ImportPage() {
       <div className="wrap">
         <div className="admin-bar">
           <div>
-            <span className="eyebrow" style={{ marginBottom: 4 }}>
-              // admin
-            </span>
-            <h1>Import from Excel</h1>
+            <h1>Import opportunities</h1>
           </div>
-          <Link href="/admin" className="admin-link-btn">
+          <Link href="/admin/opportunities" className="admin-link-btn">
             ← back to list
           </Link>
         </div>
 
-        <ImportWizard />
+        <ImportWizard kind="opportunities" />
       </div>
     </main>
   );
