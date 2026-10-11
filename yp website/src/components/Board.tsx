@@ -4,7 +4,6 @@ import { Opportunity, CATEGORY_ACCENT, Sheet } from "@/data/opportunities";
 import { OpportunityCard } from "./OpportunityCard";
 import { SearchBar } from "./SearchBar";
 import { FilterSheet, OptionDef } from "./FilterSheet";
-import { useReducedMotion } from "@/hooks/useReducedMotion";
 import { usePersistentState } from "@/hooks/usePersistentState";
 
 // The three original categories keep their brand colors; anything an admin
@@ -28,7 +27,6 @@ const LEVEL_DEFS: { key: string; label: string; test: (level: string) => boolean
 ];
 
 export function Board({ opportunities }: { opportunities: Opportunity[] }) {
-  const motionOK = !useReducedMotion();
   const [query, setQuery] = useState("");
   const [sheetOpen, setSheetOpen] = useState(false);
   const [categories, setCategories] = usePersistentState<string[]>("ypboard:categories", []);
@@ -104,7 +102,7 @@ export function Board({ opportunities }: { opportunities: Opportunity[] }) {
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M4 6h16M7 12h10M10 18h4" />
             </svg>
-            Preferences
+            Filters
             {activeCount > 0 && <span className="filter-badge">{activeCount}</span>}
           </button>
         </div>
@@ -129,18 +127,18 @@ export function Board({ opportunities }: { opportunities: Opportunity[] }) {
       </div>
 
       <p className="count-line">
-        // showing {filtered.length} of {opportunities.length}
+        Showing {filtered.length} of {opportunities.length}
       </p>
 
       <div className="grid">
         {filtered.length === 0 ? (
           <div className="empty-state" style={{ gridColumn: "1 / -1" }}>
-            <strong>Nothing pinned here yet</strong>
+            <strong>No opportunities match</strong>
             Try a different search term or loosen your preferences.
           </div>
         ) : (
-          filtered.map((item, i) => (
-            <OpportunityCard key={item.id} item={item} index={i} motionOK={motionOK} />
+          filtered.map((item) => (
+            <OpportunityCard key={item.id} item={item} />
           ))
         )}
       </div>
