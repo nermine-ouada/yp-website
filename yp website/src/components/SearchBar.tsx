@@ -7,7 +7,7 @@ const EXAMPLES = ["power", "phd", "women", "robotics", "photonics", "policy"];
 
 export function SearchBar({ value, onChange }: { value: string; onChange: (v: string) => void }) {
   const reduced = useReducedMotion();
-  const [placeholder, setPlaceholder] = useState("SEARCH: power / phd / women / robotics…");
+  const [placeholder, setPlaceholder] = useState("Search, e.g. power, phd, women, robotics");
   const inputRef = useRef<HTMLInputElement>(null);
   const focusedRef = useRef(false);
 
@@ -24,7 +24,7 @@ export function SearchBar({ value, onChange }: { value: string; onChange: (v: st
         return;
       }
       const word = EXAMPLES[exIndex];
-      const base = "SEARCH: ";
+      const base = "Search: ";
       if (!deleting) {
         charIndex++;
         setPlaceholder(base + word.slice(0, charIndex) + "▌");

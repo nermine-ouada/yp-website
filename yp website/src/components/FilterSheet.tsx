@@ -83,17 +83,14 @@ export function FilterSheet({
         <div className="sheet-handle" />
         <div className="sheet-header">
           <div>
-            <span className="eyebrow" style={{ marginBottom: 4 }}>
-              // your preferences
-            </span>
-            <h2>What are you into?</h2>
+            <h2>Filter opportunities</h2>
           </div>
           <button type="button" className="sheet-close" onClick={onClose} aria-label="Close">
             ✕
           </button>
         </div>
 
-        <p className="sheet-section-label">Category · pick as many as you like</p>
+        <p className="sheet-section-label">Category</p>
         <div className="option-grid">
           {categoryOptions.map((opt) => (
             <OptionTile
@@ -122,7 +119,7 @@ export function FilterSheet({
             Clear all
           </button>
           <button type="button" className="sheet-apply" onClick={onClose}>
-            Show {resultCount} {resultCount === 1 ? "pin" : "pins"}
+            Show {resultCount} {resultCount === 1 ? "result" : "results"}
           </button>
         </div>
       </div>

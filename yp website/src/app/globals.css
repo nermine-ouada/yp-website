@@ -1,6 +1,11 @@
 @import "tailwindcss";
 
 :root {
+  /* fonts (loaded in app/layout.tsx) */
+  --font-display: "Bricolage Grotesque";
+  --font-body: "Karla";
+  --font-mono: "Space Mono";
+
   /* board chrome */
   --board: #FFFFFF;
   --board-fleck-1: rgba(0, 0, 0, 0);
@@ -919,3 +924,57 @@ body:has(.dash) .meta-nav, body:has(.dash) .fab-linktree { display: none; }
 .dash-card:nth-child(3n+2) .dash-card-label::before { background: var(--green); }
 .dash-card:nth-child(3n) .dash-card-label::before { background: var(--orange); }
 .dash-card:hover { border-color: #C9D9E6; }
+
+/* Opportunities page, in the same style as the rest of the site */
+.pro-page .toolbar { margin-top: 0; }
+.pro-page .search-tape { transform: none; }
+.pro-page .search-tape input {
+  border: 1px solid var(--pro-line); border-radius: 8px; background: #fff; box-shadow: none;
+  font-family: var(--font-body), sans-serif; font-size: 15px; color: var(--pro-ink); padding: 12px 16px 12px 42px;
+}
+.pro-page .search-tape input::placeholder { color: var(--pro-faint); }
+.pro-page .search-tape input:focus { outline: 2px solid rgba(0, 98, 155, .3); border-color: var(--blue); }
+.pro-page .filter-trigger {
+  border: 1px solid var(--pro-line); border-bottom-width: 1px; border-radius: 8px; background: #fff;
+  font-family: var(--font-body), sans-serif; font-weight: 600; font-size: 14px; color: var(--pro-ink);
+}
+.pro-page .filter-trigger:hover { border-color: var(--blue); color: var(--blue); }
+.pro-page .filter-trigger:active { transform: none; border-bottom-width: 1px; }
+.pro-page .filter-badge { background: var(--blue); box-shadow: none; font-family: var(--font-body), sans-serif; }
+.pro-page .active-chip { font-family: var(--font-body), sans-serif; font-weight: 600; font-size: 13px; background: #EEF5FA; color: var(--blue); border-color: #CFE1EE; }
+.pro-page .active-chip.clear { background: #fff; color: var(--pro-muted); border-color: var(--pro-line); }
+.pro-page .count-line { font-family: var(--font-body), sans-serif; font-weight: 500; font-size: 13.5px; color: var(--pro-faint); margin: 6px 0 18px; }
+.pro-page .grid { gap: 20px; }
+.pro-page .empty-state strong { font-family: var(--font-body), sans-serif; }
+
+.opp-card { gap: 10px; border-top: 3px solid var(--card-accent); }
+.opp-card h3 { font-size: 16.5px; }
+.opp-card .pro-tag { color: var(--card-accent); }
+.opp-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.opp-status { flex: 0 0 auto; font-size: 12px; font-weight: 600; padding: 2px 9px; border-radius: 999px; }
+.opp-status.open { background: #ECFDF3; color: #067647; }
+.opp-status.annual { background: #F3F4F6; color: var(--pro-muted); }
+.opp-meta { display: flex; flex-direction: column; gap: 7px; font-size: 13.5px; color: var(--pro-muted); line-height: 1.5; }
+.opp-meta > div { display: flex; gap: 9px; align-items: flex-start; }
+.opp-meta svg { flex: 0 0 auto; width: 14px; height: 14px; margin-top: 3px; color: var(--card-accent); }
+.opp-meta strong { color: var(--pro-ink); font-weight: 600; }
+.opp-more { border-top: 1px solid var(--pro-line); padding-top: 8px; }
+.opp-more summary { font-family: var(--font-body), sans-serif; font-size: 13px; font-weight: 600; color: var(--blue); text-transform: none; letter-spacing: 0; }
+.opp-more p { font-size: 13.5px; color: var(--pro-muted); }
+.opp-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: auto; padding-top: 6px; }
+.opp-member { display: flex; align-items: center; gap: 5px; font-size: 12.5px; color: var(--pro-faint); }
+.opp-member svg { width: 13px; height: 13px; }
+.opp-foot .pro-btn { padding: 8px 14px; font-size: 13.5px; }
+
+/* filter panel */
+.pro-page .sheet { background: #fff; background-image: none; border-radius: 14px 14px 0 0; }
+@media (min-width: 640px) { .pro-page .sheet { border-radius: 14px; } }
+.pro-page .sheet-header h2 { font-family: var(--font-body), sans-serif; font-weight: 700; font-size: 20px; color: var(--pro-ink); }
+.pro-page .sheet-close { background: #fff; border-color: var(--pro-line); }
+.pro-page .sheet-section-label { font-family: var(--font-body), sans-serif; font-size: 12.5px; letter-spacing: .06em; color: var(--pro-faint); }
+.pro-page .option-tile { background: #fff; border: 1px solid var(--pro-line); border-radius: 8px; }
+.pro-page .option-tile .option-label { font-family: var(--font-body), sans-serif; font-weight: 600; }
+.pro-page .option-tile .option-count { font-family: var(--font-body), sans-serif; }
+.pro-page .option-tile.selected { background: var(--blue); animation: none; }
+.pro-page .sheet-clear { font-family: var(--font-body), sans-serif; border: 1px solid var(--pro-line); border-radius: 8px; }
+.pro-page .sheet-apply { font-family: var(--font-body), sans-serif; font-weight: 700; background: var(--blue); color: #fff; border-radius: 8px; box-shadow: none; }
