@@ -97,7 +97,6 @@ export const DEFAULT_SITE: SiteContent = {
       { label: "Congresses we partnered on or organized", before: "6", after: "11" },
       { label: "YP participants in partnered congresses", before: "+250", after: "+500", note: "x2" },
       { label: "Student participants in partnered congresses", before: "+2 500", after: "+3 000", note: "+20%" },
-      { label: "Funds received for sponsorship and activities", before: "$3 000", after: "$2 295" },
     ],
     activities: [
       "Financial support",
