@@ -17,6 +17,8 @@ export default async function ContactPage() {
     { tag: "Email", value: contact.email, href: `mailto:${contact.email}` },
     { tag: "Phone", value: contact.phone, href: `tel:${contact.phone.replace(/\s/g, "")}` },
     { tag: "Facebook", value: facebookHandle, href: contact.facebook },
+    { tag: "LinkedIn", value: "ieee-yp-tunisia", href: contact.linkedin },
+    { tag: "Instagram", value: "ieee_yp_tunisia_affinity_group", href: contact.instagram },
     { tag: "Location", value: contact.location },
   ].filter((c) => c.value);
   return (

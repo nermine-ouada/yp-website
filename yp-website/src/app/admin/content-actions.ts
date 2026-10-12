@@ -374,9 +374,26 @@ export async function updateSite(fd: FormData) {
       email: text(fd, "contact.email"),
       phone: text(fd, "contact.phone"),
       facebook: text(fd, "contact.facebook"),
+      linkedin: text(fd, "contact.linkedin"),
+      instagram: text(fd, "contact.instagram"),
       hours: "",
       days: "",
       location: text(fd, "contact.location"),
+    },
+    impact: {
+      title: text(fd, "impact.title"),
+      yearBefore: text(fd, "impact.yearBefore"),
+      yearAfter: text(fd, "impact.yearAfter"),
+      membersValue: text(fd, "impact.membersValue"),
+      membersLabel: text(fd, "impact.membersLabel"),
+      membersNote: text(fd, "impact.membersNote"),
+      // "Label | 2025 value | 2026 value | note" per line
+      kpis: lines(fd, "impact.kpis")
+        .map((l) => l.split("|").map((x) => x.trim()))
+        .filter((c) => c[0] && c[1] && c[2])
+        .map(([label, before, after, note]) => (note ? { label, before, after, note } : { label, before, after })),
+      activities: lines(fd, "impact.activities"),
+      award: text(fd, "impact.award"),
     },
     footerLinks: links(lines(fd, "footerLinks")),
     usefulLinks: links(lines(fd, "usefulLinks")),

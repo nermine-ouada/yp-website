@@ -61,7 +61,7 @@ export const about = {
   members: 225,
   membersStatsDate: "January 2019",
   intro:
-    "The IEEE Tunisia Young Professionals Affinity Group was formed on 2nd April 2010. It assembles 225 IEEE members (Stats. January 2019) who graduated with their first professional degree within the last 15 years.",
+    "The IEEE Tunisia Young Professionals Affinity Group was formed on 2nd April 2010. It brings together more than 700 IEEE members (October 2026) who graduated with their first professional degree within the last 15 years.",
   mission: {
     summary:
       "The IEEE Tunisia Young Professionals Affinity Group (YP-AG) is dedicated to empowering early-career engineers in Tunisia.",

@@ -24,7 +24,7 @@ const pairLines = (items: { label: string; url: string }[]) => items.map((l) => 
 
 export default async function AdminSitePage({ searchParams }: { searchParams: Promise<{ saved?: string }> }) {
   const [site, { saved }] = await Promise.all([getSite(), searchParams]);
-  const { about, contact } = site;
+  const { about, contact, impact } = site;
 
   return (
     <main>
@@ -55,6 +55,30 @@ export default async function AdminSitePage({ searchParams }: { searchParams: Pr
           </fieldset>
 
           <fieldset className="admin-fieldset">
+            <legend>Impact (home page KPIs)</legend>
+            <Row label="Section title" name="impact.title" value={impact.title} />
+            <div className="admin-form-grid">
+              <Row label="Earlier year" name="impact.yearBefore" value={impact.yearBefore} />
+              <Row label="Current year" name="impact.yearAfter" value={impact.yearAfter} />
+            </div>
+            <div className="admin-form-grid">
+              <Row label="Members figure" name="impact.membersValue" value={impact.membersValue} />
+              <Row label="Members label" name="impact.membersLabel" value={impact.membersLabel} />
+            </div>
+            <Row label="Members note" name="impact.membersNote" value={impact.membersNote} />
+            <Row
+              label="Charts"
+              name="impact.kpis"
+              value={impact.kpis.map((k) => [k.label, k.before, k.after, k.note].filter(Boolean).join(" | ")).join("\n")}
+              help="One chart per line, as: Label | earlier value | current value | note (optional). Bars are sized from the numbers."
+              area
+              rows={5}
+            />
+            <Row label="Support and activities" name="impact.activities" value={impact.activities.join("\n")} help="One per line." area rows={4} />
+            <Row label="Award" name="impact.award" value={impact.award} />
+          </fieldset>
+
+          <fieldset className="admin-fieldset">
             <legend>About page</legend>
             <Row label="Intro" name="about.intro" value={about.intro} area />
             <Row label="Mission summary" name="about.missionSummary" value={about.missionSummary} area rows={2} />
@@ -73,6 +97,10 @@ export default async function AdminSitePage({ searchParams }: { searchParams: Pr
               <Row label="Phone" name="contact.phone" value={contact.phone} />
             </div>
             <Row label="Facebook page" name="contact.facebook" value={contact.facebook} />
+            <div className="admin-form-grid">
+              <Row label="LinkedIn" name="contact.linkedin" value={contact.linkedin} />
+              <Row label="Instagram" name="contact.instagram" value={contact.instagram} />
+            </div>
             <Row label="Location" name="contact.location" value={contact.location} />
           </fieldset>
 
