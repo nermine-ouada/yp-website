@@ -7,6 +7,26 @@ export interface Stat {
   label: string;
 }
 
+// One KPI compared across two years, e.g. congresses 6 -> 11.
+export interface Kpi {
+  label: string;
+  before: string; // value for impact.yearBefore, e.g. "6", "$3 000", "+2 500"
+  after: string; // value for impact.yearAfter
+  note?: string; // e.g. "x2", "+20%"
+}
+
+export interface Impact {
+  title: string;
+  yearBefore: string;
+  yearAfter: string;
+  membersValue: string;
+  membersLabel: string;
+  membersNote: string;
+  kpis: Kpi[];
+  activities: string[];
+  award: string;
+}
+
 export interface SiteContent {
   name: string;
   copyright: string;
@@ -26,10 +46,13 @@ export interface SiteContent {
     valuesPoints: string[];
     invitation: string;
   };
+  impact: Impact;
   contact: {
     email: string;
     phone: string;
     facebook: string;
+    linkedin: string;
+    instagram: string;
     hours: string;
     days: string;
     location: string;
@@ -49,7 +72,7 @@ export const DEFAULT_SITE: SiteContent = {
   heroText: `${about.intro} We help new graduates move into professional life through networking, workshops, mentorship and access to IEEE opportunities.`,
   stats: [
     { value: "2010", label: "Founded on 2 April" },
-    { value: String(about.members), label: `Members (${about.membersStatsDate})` },
+    { value: "+700", label: "YP members (Oct 2026)" },
     { value: "{opportunities}", label: "Opportunities listed" },
     { value: "2022", label: "IEEE YP Hall of Fame Award" },
   ],
@@ -62,7 +85,36 @@ export const DEFAULT_SITE: SiteContent = {
     valuesPoints: about.values.points,
     invitation: about.invitation,
   },
-  contact: { ...contact },
+  // From the IEEE Day 2026 KPI sheet.
+  impact: {
+    title: "Our impact in numbers",
+    yearBefore: "2025",
+    yearAfter: "2026",
+    membersValue: "+700",
+    membersLabel: "YP members in October 2026",
+    membersNote: "+75% compared with +400 in October 2024",
+    kpis: [
+      { label: "Congresses we partnered on or organized", before: "6", after: "11" },
+      { label: "YP participants in partnered congresses", before: "+250", after: "+500", note: "x2" },
+      { label: "Student participants in partnered congresses", before: "+2 500", after: "+3 000", note: "+20%" },
+      { label: "Funds received for sponsorship and activities", before: "$3 000", after: "$2 295" },
+    ],
+    activities: [
+      "Financial support",
+      "Round tables",
+      "Nano mentoring",
+      "Technical contests",
+      "Mock interviews",
+      "Presentations",
+      "Industry meetups",
+    ],
+    award: "Best YP Poster Award at IEEE R8 SYP 2026, Kraków",
+  },
+  contact: {
+    ...contact,
+    linkedin: "https://www.linkedin.com/company/ieee-yp-tunisia",
+    instagram: "https://www.instagram.com/ieee_yp_tunisia_affinity_group",
+  },
   footerLinks,
   usefulLinks,
 };
@@ -76,5 +128,6 @@ export function mergeSite(saved: Partial<SiteContent> | null | undefined): SiteC
     ...saved,
     about: { ...DEFAULT_SITE.about, ...saved.about },
     contact: { ...DEFAULT_SITE.contact, ...saved.contact },
+    impact: { ...DEFAULT_SITE.impact, ...saved.impact },
   };
 }

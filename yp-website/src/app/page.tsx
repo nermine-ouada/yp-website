@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Carousel } from "@/components/Carousel";
 import { EventCard, EventGrid } from "@/components/Gallery";
 import { SafeImage } from "@/components/SafeImage";
+import { Impact } from "@/components/Impact";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { ArrowIcon } from "@/components/icons";
@@ -81,6 +82,8 @@ export default async function Home() {
               ))}
             </div>
           </section>
+
+          <Impact data={site.impact} />
 
           <section className="pro-section split split-5-7">
             <div>
