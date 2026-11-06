@@ -316,9 +316,6 @@ export function sortByDate(list: YPEvent[]) {
   return [...list].sort((a, b) => (b.date ?? "").localeCompare(a.date ?? ""));
 }
 
-export function getEvent(slug: string) {
-  return events.find((e) => e.slug === slug);
-}
 
 export function isUpcoming(e: YPEvent, today = new Date().toISOString().slice(0, 10)) {
   return !!e.date && e.date >= today;

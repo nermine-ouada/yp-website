@@ -425,7 +425,7 @@ curl '{{baseUrl}}/admin/new' \
 {
   "status": 303,
   "headers": {
-    "Location": "/admin"
+    "Location": "/admin/opportunities"
   },
   "body": null
 }
@@ -460,7 +460,7 @@ This form uses a *bound* action, so the opportunity id travels in hidden fields 
 {
   "status": 303,
   "headers": {
-    "Location": "/admin"
+    "Location": "/admin/opportunities"
   },
   "body": null
 }
@@ -469,12 +469,12 @@ This form uses a *bound* action, so the opportunity id travels in hidden fields 
 ## POST Show or hide opportunity 🔒
 
 ```
-POST {{baseUrl}}/admin
+POST {{baseUrl}}/admin/opportunities
 ```
 
 Hides an opportunity from the public board, the `/links` count and the Public API, or shows it again. A hidden opportunity stays in the admin dashboard, where it's marked **Hidden**. Nothing is deleted.
 
-**Get action id from:** `GET {{baseUrl}}/admin` (the row's "Hide" or "Show" form)
+**Get action id from:** `GET {{baseUrl}}/admin/opportunities` (the row's "Hide" or "Show" form)
 
 **Body** `form-data`
 
@@ -487,7 +487,7 @@ Hides an opportunity from the public board, the `/links` count and the Public AP
 **Example request**
 
 ```bash
-curl '{{baseUrl}}/admin'   -H 'Origin: {{baseUrl}}'   -b cookies.txt   -F '$ACTION_ID_{{actionId}}='   -F 'id={{oppId}}'   -F 'hidden=true'
+curl '{{baseUrl}}/admin/opportunities'   -H 'Origin: {{baseUrl}}'   -b cookies.txt   -F '$ACTION_ID_{{actionId}}='   -F 'id={{oppId}}'   -F 'hidden=true'
 ```
 
 **Example response** `200 OK`
@@ -507,12 +507,12 @@ This action doesn't redirect. It re-renders the admin dashboard, so the admin's 
 ## POST Move to trash 🔒
 
 ```
-POST {{baseUrl}}/admin
+POST {{baseUrl}}/admin/opportunities
 ```
 
 Soft-deletes an opportunity. It disappears from the public board but can still be recovered.
 
-**Get action id from:** `GET {{baseUrl}}/admin` (the row's "Delete" form)
+**Get action id from:** `GET {{baseUrl}}/admin/opportunities` (the row's "Delete" form)
 
 **Body** `form-data`
 
@@ -526,7 +526,7 @@ Soft-deletes an opportunity. It disappears from the public board but can still b
 **Example request**
 
 ```bash
-curl '{{baseUrl}}/admin' \
+curl '{{baseUrl}}/admin/opportunities' \
   -H 'Origin: {{baseUrl}}' \
   -b cookies.txt \
   -F '$ACTION_ID_{{actionId}}=' \
@@ -539,7 +539,7 @@ curl '{{baseUrl}}/admin' \
 {
   "status": 303,
   "headers": {
-    "Location": "/admin"
+    "Location": "/admin/opportunities"
   },
   "body": null
 }
@@ -690,7 +690,7 @@ The raw body is a React Server Components payload whose last line is `1:{"count"
 POST {{baseUrl}}/admin/trash
 ```
 
-⚠️ Permanently deletes **every** opportunity in the trash. This can't be undone. In the Postman collection it's skipped unless `allowDestructive` is `true`.
+⚠️ Permanently deletes **everything** in the trash: opportunities, events and team members. This can't be undone. In the Postman collection it's skipped unless `allowDestructive` is `true`.
 
 **Get action id from:** `GET {{baseUrl}}/admin/trash` (the "Empty trash" form)
 

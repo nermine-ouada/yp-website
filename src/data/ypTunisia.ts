@@ -1,15 +1,10 @@
-// Content scraped from yp.ieee.tn (Home, About, Events and Conferences, Officers, Contact)
-// Source: saved page sources in "dowloaded website/", October 2026.
-//
-// yp.ieee.tn sits behind a Cloudflare challenge, so its images can't be
-// hotlinked. Every image is served from public/yp/ instead; REMOTE_IMAGES
-// lists where each one came from (see scripts/download-yp-images.js).
+// Starting content for the site, originally taken from yp.ieee.tn.
+// prisma/seed.ts copies the team into the database; after that, edits happen
+// in the dashboard, not here.
 
-const REMOTE = "https://yp.ieee.tn/wp-content/uploads/sites/165";
-export const REMOTE_IMAGES: string[] = [];
-
+// The old site stored images under dated WordPress folders; local copies live
+// flat in public/yp/, so only the file name is kept.
 export function img(path: string) {
-  REMOTE_IMAGES.push(`${REMOTE}/${path}`);
   return `/yp/${path.split("/").pop()}`;
 }
 
@@ -41,25 +36,12 @@ export interface LinkItem {
 
 export const site = {
   name: "IEEE Young Professionals Tunisia Affinity Group",
-  shortName: "IEEE YP Tunisia AG",
-  url: "https://yp.ieee.tn",
-  logo: img("2026/10/cropped-IEEE-YP-TN-Hor-scaled-1.png"),
   copyright: "© Copyright 2019 - IEEE Tunisia Young Professionals AG - All rights reserved.",
   introVideoId: "BTct887NNC0",
   aboutVideo: "https://youtu.be/pJQKg8qBKf8",
-  nav: [
-    { label: "Home", url: "https://yp.ieee.tn/" },
-    { label: "Events and Conferences", url: "https://yp.ieee.tn/events-and-conferences/" },
-    { label: "About", url: "https://yp.ieee.tn/about/" },
-    { label: "Officers", url: "https://yp.ieee.tn/officers/" },
-    { label: "Contact", url: "https://yp.ieee.tn/contact/" },
-  ] satisfies LinkItem[],
 };
 
 export const about = {
-  founded: "2010-04-02",
-  members: 225,
-  membersStatsDate: "January 2019",
   intro:
     "The IEEE Tunisia Young Professionals Affinity Group was formed on 2nd April 2010. It brings together more than 700 IEEE members (October 2026) who graduated with their first professional degree within the last 15 years.",
   mission: {
@@ -246,18 +228,6 @@ export const usefulLinks: LinkItem[] = [
   },
 ];
 
-// Older photos from the About page sidebar gallery
-export const archiveGallery: string[] = [
-  img("2019/06/Photo-Group.jpg"),
-  img("2019/06/Coffee-Break.jpg"),
-  img("2019/06/56913366_2319934291586725_7394707028167360512_n.png"),
-  img("2018/04/29542283_203075430289872_4040669896441975824_n.jpg"),
-  img("2018/04/29572595_203322060265209_1094369935387760338_n.jpg"),
-  img("2018/04/18700060_203073976956684_4358145148105934870_n.jpg"),
-  img("2012/02/women.jpg"),
-  img("2012/02/robo.jpg"),
-  img("2012/02/wro2015.jpg"),
-];
 
 // Graduates first (Member, then Graduate Student Member, then Student Member).
 // A committee Chair stays at the top of their list.

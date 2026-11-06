@@ -1,17 +1,27 @@
-# The YP Pinboard
+# IEEE YP Tunisia website
 
-A pinboard of IEEE Young Professionals scholarships, fellowships and internships, curated by the YP Tunisia AG Task Force.
+The website of the IEEE Young Professionals Tunisia Affinity Group: events, the team, key figures, and a board of IEEE scholarships, fellowships and internships. Everything on it is managed from a password-protected dashboard.
 
-**Live:** https://ieee-yp-opportunities.vercel.app
+**Repository:** [nermine-ouada/yp-website](https://github.com/nermine-ouada/yp-website)
 
-- **Public board** (`/`): browse, search and filter opportunities across three tabs: Scholarships, PhD & Fellowships and Internships.
-- **Admin portal** (`/admin`): a password-protected area to create, edit, trash and recover opportunities, and to bulk-import them from an Excel/CSV file.
+## Pages
+
+| Page | What it shows |
+| --- | --- |
+| `/` | Hero and intro video, key figures, impact KPIs, opportunities and recent events, activities, collaborations, the team |
+| `/events` | Upcoming and past events, collaborations and news, paginated. Each event has its own page at `/events/<web address>` |
+| `/opportunities` | The opportunities board: search and filter by category and level |
+| `/officers` | Officers, YP Task Force committees (as tabs) and ambassadors |
+| `/about` | Mission, values and the global IEEE YP community |
+| `/contact` | Email, phone and social links |
+| `/links` | Link page for flyers and QR codes |
+| `/admin` | The dashboard (see below) |
 
 ## Tech stack
 
 - [Next.js](https://nextjs.org) 16 (App Router, Server Actions) with React 19
 - PostgreSQL ([Neon](https://neon.tech)) via [Prisma](https://www.prisma.io) 6
-- Tailwind CSS 4, plus `three` for the 3D logo and `xlsx` for import/export
+- Tailwind CSS 4, and `xlsx` for spreadsheet import and templates
 - Hosted on [Vercel](https://vercel.com)
 
 ## Getting started
@@ -22,10 +32,11 @@ Requirements: Node.js 20+ and a PostgreSQL database.
 npm install
 cp .env.example .env.local   # then fill in the values below
 npm run db:migrate           # apply Prisma migrations
+npm run db:seed              # starting events and team (only fills empty tables)
 npm run dev
 ```
 
-Open http://localhost:3000 for the board. The admin portal is at http://localhost:3000/admin.
+Open http://localhost:3000 for the site and http://localhost:3000/admin for the dashboard.
 
 ### Environment variables
 
@@ -49,48 +60,48 @@ Open http://localhost:3000 for the board. The admin portal is at http://localhos
 | `npm run db:seed` | Fill the events and team tables with the starting content (only touches empty tables) |
 | `npm run db:studio` | Open Prisma Studio |
 
-## Admin portal
+## Dashboard
 
 The dashboard at `/admin` manages all site content:
 
 - **Overview:** counts and recent changes.
-- **Opportunities** (`/admin/opportunities`): the pinboard.
-- **Events** (`/admin/events`): every event, talk, challenge and announcement. Each one gets its own page at `/events/<web address>`.
+- **Opportunities** (`/admin/opportunities`): the opportunities board.
+- **Events** (`/admin/events`): events, talks, challenges and announcements.
 - **Team** (`/admin/team`): officers, YP Task Force members (grouped by committee) and ambassadors.
-- **Site content** (`/admin/site`): home page text, key figures, about, contact, footer links and the YouTube video.
+- **Site content** (`/admin/site`): home page text, key figures, impact KPIs, about, contact, footer links and the YouTube video.
 - **Trash** (`/admin/trash`): deleted opportunities, events and people, until restored or deleted for good.
 
-Opportunities, events and team members can each be imported from Excel or CSV (an Import button on each list). Download the template, fill it in, then review every row before saving. The team import also accepts the Task Force sheet as it is: it reads Full Name, Position, Committee, IEEE membership and IEEE Student Branch, and ignores other columns such as phone and email.
-
-Images can be uploaded from the forms (JPEG, PNG, WebP or GIF, up to 3 MB). They are stored in the database and served from `/api/uploads/<id>`.
-
+How it works:
 
 - **Login:** one shared password and no user accounts. A session lasts **15 minutes** and isn't extended by activity.
-- **Show / hide:** each row on the dashboard has a Hide/Show button. A hidden opportunity disappears from the public board, the `/links` count and the public API, but stays in the admin, marked **Hidden**. The dashboard can filter by visibility.
-- **Delete is a soft delete** for opportunities, events and people. Deleted rows go to the trash at `/admin/trash`, where they can be restored or permanently deleted.
-- **Bulk import** at `/admin/import`: download the template, fill it in, upload it, then review each row before saving.
+- **Show / hide:** every list has a Hide/Show button. Hidden items disappear from the public site but stay in the dashboard, marked **Hidden**.
+- **Delete is a soft delete.** Deleted items go to the trash, where they can be restored or permanently deleted.
+- **Import:** opportunities, events and team members can each be imported from Excel or CSV (an Import button on each list). Download the template, fill it in, then review every row before saving. The team import also accepts the Task Force sheet as it is: it reads Full Name, Position, Committee, IEEE membership and IEEE Student Branch, and ignores other columns such as phone and email.
+- **Images** can be uploaded from the forms (JPEG, PNG, WebP or GIF, up to 3 MB). They're stored in the database and served from `/api/uploads/<id>`. Images that ship with the site live in `public/yp/`.
 
 ## Project structure
 
 ```
-prisma/              schema, migrations
-src/app/             routes: public board, /about, /links, /admin/*
-src/app/admin/       admin pages + Server Actions (actions.ts)
-src/components/      UI components (admin/ for portal-only ones)
+prisma/              schema, migrations, seed.ts (starting content)
+public/yp/           event posters and team photos
+src/app/             public pages and /admin/*
+src/app/admin/       dashboard pages + Server Actions (actions.ts, content-actions.ts)
+src/components/      UI components (admin/ for dashboard-only ones)
+src/data/            types and starting content used by the seed
 src/lib/             auth (signed session cookie), Prisma client, data queries
-src/middleware.ts    redirects unauthenticated /admin/* requests to login
+src/proxy.ts         redirects unauthenticated /admin/* requests to login
 ```
 
 ## API & testing
 
 - `GET /api/opportunities` is a public, read-only JSON endpoint with filters, for external integrations.
-- [docs/API.md](docs/API.md) documents the Server Actions, the template route, authentication and the data model.
-- [postman/ypboard.postman_collection.json](postman/ypboard.postman_collection.json) is a Postman collection that tests every endpoint end-to-end. It creates its own test rows and cleans them up afterwards. Set `adminPassword` in the collection variables before running it.
+- [docs/API.md](docs/API.md) documents the opportunity Server Actions, the template route, authentication and the data model.
+- [postman/ypboard.postman_collection.json](postman/ypboard.postman_collection.json) tests the opportunity endpoints end-to-end. It creates its own test rows and cleans them up afterwards. Set `adminPassword` in the collection variables before running it.
 
 ## Deployment
 
-The app is hosted on Vercel. The source is at [nermine-ouada/yp-board](https://github.com/nermine-ouada/yp-board).
+The app is hosted on Vercel, building from the repository root.
 
-1. In the Vercel project settings, set `DATABASE_URL`, `ADMIN_PASSWORD` and `SESSION_SECRET`.
+1. In the Vercel project settings, set `DATABASE_URL`, `ADMIN_PASSWORD` and `SESSION_SECRET`, and leave **Root Directory** empty.
 2. The Vercel build doesn't run migrations. When `prisma/schema.prisma` changes, run `npm run db:migrate` against the production database (with `.env.local` pointing at it) **before** deploying. The new code expects the new columns, so deploying first breaks the site.
 3. Run migrations over Neon's **direct** connection string (the hostname without `-pooler`). Through the pooler, Prisma's migration lock can stay stuck on an idle connection, and later migrations then time out (`P1002`).

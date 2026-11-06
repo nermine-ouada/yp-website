@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // old local copy of the project, not part of this repo
+    "ypboard/**",
   ]),
 ]);
 

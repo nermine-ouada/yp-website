@@ -2,8 +2,8 @@
 // admin password (ADMIN_PASSWORD), not per-user accounts, so there's no
 // users table — just a cookie that proves "someone who knows the password
 // logged in before <expiry>", signed with SESSION_SECRET so it can't be
-// forged. Uses Web Crypto (not node:crypto) so it also works in middleware,
-// which runs on the Edge runtime.
+// forged. Uses Web Crypto, which works both in Server Actions and in the
+// proxy (src/proxy.ts) that guards /admin.
 
 const COOKIE_NAME = "admin_session";
 const SESSION_MINUTES = 15;
@@ -48,7 +48,7 @@ export async function isValidSessionToken(token: string | undefined): Promise<bo
 export const ADMIN_SESSION_COOKIE = COOKIE_NAME;
 
 /**
- * Defense in depth for Server Actions: middleware already gates page
+ * Defense in depth for Server Actions: the proxy already gates page
  * navigation to /admin/*, but actions get their own check too rather than
  * relying solely on the request having come from a matched route.
  */

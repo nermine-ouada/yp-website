@@ -12,12 +12,9 @@ export default async function AdminLoginPage({
     <main style={{ minHeight: "70vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
       <div className="wrap" style={{ maxWidth: 380, width: "100%" }}>
         <form action={login} className="admin-login-card">
-          <span className="eyebrow" style={{ marginBottom: 6 }}>
-            // task force only
-          </span>
           <h1 style={{ fontSize: 24, marginBottom: 4 }}>Admin login</h1>
           <p style={{ color: "var(--board-muted)", fontSize: 13.5, margin: "0 0 18px" }}>
-            Enter the shared admin password to manage pinned opportunities.
+            Enter the shared admin password to manage the site.
           </p>
           <input type="hidden" name="from" value={params.from ?? "/admin"} />
           <label htmlFor="password" className="admin-label">

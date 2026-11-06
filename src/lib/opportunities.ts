@@ -97,9 +97,6 @@ export async function countOpportunities(): Promise<number> {
   return prisma.opportunity.count({ where: { deletedAt: null, hidden: false } });
 }
 
-export async function getOpportunity(id: string) {
-  return prisma.opportunity.findUnique({ where: { id } });
-}
 
 export async function getDistinctSheets(): Promise<string[]> {
   const rows = await prisma.opportunity.findMany({

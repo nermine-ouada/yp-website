@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Opportunity, CATEGORY_ACCENT, Sheet } from "@/data/opportunities";
 import { OpportunityCard } from "./OpportunityCard";
 import { SearchBar } from "./SearchBar";
@@ -30,23 +30,17 @@ const LEVEL_DEFS: { key: string; label: string; test: (level: string) => boolean
 export function Board({ opportunities }: { opportunities: Opportunity[] }) {
   const motionOK = !useReducedMotion();
   const [query, setQuery] = useState("");
-  const [sheetOpen, setSheetOpen] = useState(false);
+  const [panelOpen, setPanelOpen] = useState(false);
   const [categories, setCategories] = usePersistentState<string[]>("ypboard:categories", []);
   const [levels, setLevels] = usePersistentState<string[]>("ypboard:levels", []);
-
-  // First visit: invite people to pick their preferences before they see the board.
-  useEffect(() => {
-    const seen = typeof window !== "undefined" && localStorage.getItem("ypboard:onboarded");
-    if (!seen) setSheetOpen(true);
-  }, []);
+  // First visit: open the filters straight away. The server renders it closed
+  // so returning visitors never see it flash open.
+  const [onboarded, setOnboarded] = usePersistentState<boolean>("ypboard:onboarded", false, true);
+  const sheetOpen = panelOpen || !onboarded;
 
   const closeSheet = () => {
-    setSheetOpen(false);
-    try {
-      localStorage.setItem("ypboard:onboarded", "1");
-    } catch {
-      /* storage blocked — fine to skip */
-    }
+    setPanelOpen(false);
+    setOnboarded(true);
   };
 
   const toggleCategory = (key: string) =>
@@ -72,7 +66,7 @@ export function Board({ opportunities }: { opportunities: Opportunity[] }) {
       }
       return true;
     });
-  }, [query, categories, levels]);
+  }, [opportunities, query, categories, levels]);
 
   const categories_ = useMemo(() => {
     const present = new Set(opportunities.map((o) => o.sheet));
@@ -100,7 +94,7 @@ export function Board({ opportunities }: { opportunities: Opportunity[] }) {
       <div className="toolbar">
         <div className="search-row">
           <SearchBar value={query} onChange={setQuery} />
-          <button type="button" className="filter-trigger" onClick={() => setSheetOpen(true)}>
+          <button type="button" className="filter-trigger" onClick={() => setPanelOpen(true)}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M4 6h16M7 12h10M10 18h4" />
             </svg>

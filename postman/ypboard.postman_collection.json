@@ -356,12 +356,13 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/admin",
+              "raw": "{{baseUrl}}/admin/opportunities",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
-                "admin"
+                "admin",
+                "opportunities"
               ]
             }
           },
@@ -706,12 +707,13 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/admin?q=postman-test-{{runId}}",
+              "raw": "{{baseUrl}}/admin/opportunities?q=postman-test-{{runId}}",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
-                "admin"
+                "admin",
+                "opportunities"
               ],
               "query": [
                 {
@@ -782,12 +784,13 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/admin?q=postman-test-{{runId}}",
+              "raw": "{{baseUrl}}/admin/opportunities?q=postman-test-{{runId}}",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
-                "admin"
+                "admin",
+                "opportunities"
               ],
               "query": [
                 {
@@ -826,12 +829,13 @@
             "method": "POST",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/admin",
+              "raw": "{{baseUrl}}/admin/opportunities",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
-                "admin"
+                "admin",
+                "opportunities"
               ]
             },
             "body": {
@@ -910,12 +914,13 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/admin?q=postman-test-{{runId}}&visibility=hidden",
+              "raw": "{{baseUrl}}/admin/opportunities?q=postman-test-{{runId}}&visibility=hidden",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
-                "admin"
+                "admin",
+                "opportunities"
               ],
               "query": [
                 {
@@ -959,12 +964,13 @@
             "method": "POST",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/admin",
+              "raw": "{{baseUrl}}/admin/opportunities",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
-                "admin"
+                "admin",
+                "opportunities"
               ]
             },
             "body": {
@@ -1141,12 +1147,13 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/admin?q=postman-test-{{runId}}",
+              "raw": "{{baseUrl}}/admin/opportunities?q=postman-test-{{runId}}",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
-                "admin"
+                "admin",
+                "opportunities"
               ],
               "query": [
                 {
@@ -1188,12 +1195,13 @@
             "method": "POST",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/admin",
+              "raw": "{{baseUrl}}/admin/opportunities",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
-                "admin"
+                "admin",
+                "opportunities"
               ]
             },
             "body": {
@@ -1351,12 +1359,13 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/admin?q=postman-test-{{runId}}",
+              "raw": "{{baseUrl}}/admin/opportunities?q=postman-test-{{runId}}",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
-                "admin"
+                "admin",
+                "opportunities"
               ],
               "query": [
                 {
@@ -1398,12 +1407,13 @@
             "method": "POST",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/admin",
+              "raw": "{{baseUrl}}/admin/opportunities",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
-                "admin"
+                "admin",
+                "opportunities"
               ]
             },
             "body": {
@@ -1671,12 +1681,13 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/admin?q=postman-bulk-{{runId}}",
+              "raw": "{{baseUrl}}/admin/opportunities?q=postman-bulk-{{runId}}",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
-                "admin"
+                "admin",
+                "opportunities"
               ],
               "query": [
                 {
@@ -1718,12 +1729,13 @@
             "method": "POST",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/admin",
+              "raw": "{{baseUrl}}/admin/opportunities",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
-                "admin"
+                "admin",
+                "opportunities"
               ]
             },
             "body": {
@@ -1966,12 +1978,13 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/admin",
+              "raw": "{{baseUrl}}/admin/opportunities",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
-                "admin"
+                "admin",
+                "opportunities"
               ]
             }
           },
@@ -2003,12 +2016,13 @@
             "method": "POST",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/admin",
+              "raw": "{{baseUrl}}/admin/opportunities",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
-                "admin"
+                "admin",
+                "opportunities"
               ]
             },
             "body": {
@@ -2050,12 +2064,13 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/admin",
+              "raw": "{{baseUrl}}/admin/opportunities",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
-                "admin"
+                "admin",
+                "opportunities"
               ]
             }
           },
