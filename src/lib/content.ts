@@ -59,14 +59,15 @@ export const PERSON_GROUPS: { key: PersonGroup; label: string }[] = [
   { key: "ambassador", label: "Ambassadors" },
 ];
 
-export function toMember(row: DbPerson): Member & { facebook?: string; committee?: string } {
+export function toMember(row: DbPerson): Member & { linkedin?: string; committee?: string; mail?: string } {
   return {
     name: row.name,
     role: opt(row.role),
     branch: opt(row.branch),
     photo: opt(row.photo),
     membership: opt(row.membership) as Membership | undefined,
-    facebook: opt(row.facebook),
+    linkedin: opt(row.linkedin),
+    mail: opt(row.mail),
     committee: opt(row.committee),
   };
 }

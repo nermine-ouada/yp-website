@@ -51,7 +51,7 @@ const TEMPLATES: Record<string, { sheet: string; file: string; headers: string[]
   people: {
     sheet: "Team",
     file: "yp-team-template.xlsx",
-    headers: ["group", "name", "role", "committee", "branch", "membership", "photo", "facebook"],
+    headers: ["group", "name", "role", "committee", "branch", "membership", "photo", "linkedin", "mail"],
     example: [
       "Task Force",
       "Example Name",

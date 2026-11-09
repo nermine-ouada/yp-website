@@ -107,16 +107,29 @@ export function PersonForm({
 
       <div className="admin-form-grid">
         <div className="admin-form-row">
-          <label htmlFor="facebook" className="admin-label">
-            Facebook profile
+          <label htmlFor="linkedin" className="admin-label">
+            LinkedIn profile
           </label>
           <input
-            id="facebook"
-            name="facebook"
+            id="linkedin"
+            name="linkedin"
             type="url"
-            defaultValue={initial?.facebook ?? ""}
+            defaultValue={initial?.linkedin ?? ""}
             className="admin-input"
-            placeholder="https://www.facebook.com/…"
+            placeholder="https://www.linkedin.com/in/…"
+          />
+        </div>
+        <div className="admin-form-row">
+          <label htmlFor="mail" className="admin-label">
+            Email 
+          </label>
+          <input
+            id="mail"
+            name="mail"
+            type="email"
+            defaultValue={initial?.mail ?? ""}
+            className="admin-input"
+            placeholder="user@example.com"
           />
         </div>
         <div className="admin-form-row">

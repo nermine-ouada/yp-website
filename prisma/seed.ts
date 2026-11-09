@@ -54,7 +54,8 @@ async function main() {
         branch: "branch" in p ? (p.branch ?? null) : null,
         membership: p.membership ?? null,
         photo: p.photo ?? null,
-        facebook: "facebook" in p ? (p.facebook ?? null) : null,
+        linkedin: "linkedin" in p ? (p.linkedin ?? null) : null,
+        mail: "mail" in p ? (p.mail ?? null) : null,
         sortOrder: order++,
       })),
     });

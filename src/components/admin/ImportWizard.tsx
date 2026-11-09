@@ -92,7 +92,8 @@ export const IMPORTS: Record<ImportKind, Config> = {
       { key: "branch", label: "Student branch", aliases: ["ieeestudentbranch", "studentbranch"] },
       { key: "membership", label: "IEEE membership grade", aliases: ["ieeemembership", "grade"] },
       { key: "photo", label: "Photo link" },
-      { key: "facebook", label: "Facebook" },
+      { key: "linkedin", label: "LinkedIn profile link" },
+      { key: "mail", label: "Email" },
     ],
     // Accepts the Task Force sheet as it is: names split in two columns,
     // "Officer" in the committee column, long membership grade names.
@@ -112,7 +113,8 @@ export const IMPORTS: Record<ImportKind, Config> = {
       const errors: string[] = [];
       if (!["officer", "taskforce", "ambassador"].includes(r.group)) errors.push("Section should be Officer, Task Force or Ambassador");
       if (r.membership && !Object.values(GRADES).includes(r.membership)) errors.push("Grade should be Member, Graduate Student Member or Student Member");
-      if (!isUrl(r.photo) || !isUrl(r.facebook)) errors.push("Links should start with https://");
+      if (!isUrl(r.photo) || !isUrl(r.linkedin)) errors.push("Links should start with https://");
+      if (r.mail && !/^[^@]+@[^@]+\.[^@]+$/.test(r.mail)) errors.push("Email should look like an email address");
       return errors;
     },
     save: (rows) => bulkCreatePeople(rows as never),

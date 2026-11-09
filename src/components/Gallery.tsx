@@ -67,8 +67,8 @@ export function OfficerGrid({ officers }: { officers: Officer[] }) {
             {o.membership && <span className="pro-grade">{o.membership}</span>}
           </>
         );
-        return o.facebook ? (
-          <a className="pro-card pro-officer" key={o.name} href={o.facebook} target="_blank" rel="noopener noreferrer">
+        return o.linkedin ? (
+          <a className="pro-card pro-officer" key={o.name} href={o.linkedin} target="_blank" rel="noopener noreferrer">
             {body}
           </a>
         ) : (

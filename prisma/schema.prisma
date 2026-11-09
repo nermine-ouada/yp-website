@@ -75,7 +75,8 @@ model Person {
   branch     String? // ambassador's student branch
   membership String? // "Member" | "Graduate Student Member" | "Student Member"
   photo      String?
-  facebook   String?
+  linkedin   String?
+  mail       String?
   sortOrder  Int      @default(0)
   hidden     Boolean  @default(false)
   deletedAt  DateTime? // soft delete: non-null = in the dashboard trash

@@ -12,7 +12,8 @@ export interface Officer {
   name: string;
   role: string;
   photo?: string; // without one the card shows initials
-  facebook?: string;
+  linkedin?: string; // optional, but if present should be a valid URL
+  mail?: string;
   membership?: Membership;
 }
 
@@ -78,39 +79,56 @@ export const officers: Officer[] = [
     name: "Madiha Neifar",
     role: "Chair",
     photo: img("2025/07/11.png"),
-    facebook: "https://www.facebook.com/neifarmadiha",
+    linkedin: "https://www.linkedin.com/in/madiha-neifar",
+    mail: "madihaneifar@ieee.org",
     membership: "Member",
   },
   {
     name: "Khalil Masmoudi",
     role: "Vice-chair",
     photo: img("2025/07/22.png"),
-    facebook: "https://www.facebook.com/khalil.masmoudi.18",
+    linkedin: "https://www.linkedin.com/in/khalilmasmoudi",
+    mail: "masmoudi.khalil@ieee.org",
     membership: "Graduate Student Member",
   },
   {
     name: "Ranim Damak",
     role: "Secretary",
     photo: img("2025/07/33.png"),
-    facebook: "https://www.facebook.com/ranim.dmk",
+    linkedin: "https://www.linkedin.com/in/ranim-damak",
+    mail: "ranimdamak@ieee.org",
     membership: "Graduate Student Member",
   },
   {
     name: "Med Ali Krichen",
     role: "Treasurer",
     photo: img("2025/07/322.png"),
-    facebook: "https://www.facebook.com/mohamed.ali.krichen.2025",
+    linkedin: "https://www.linkedin.com/in/mohamedalikrichen/",
+    mail: "mohamedali.krichen@ieee.org",
     membership: "Graduate Student Member",
   },
   {
     name: "Iskandar Ghorbel",
     role: "Webmaster",
     photo: "/yp/iskandar-ghorbel.png",
-    facebook: "https://www.facebook.com/iskandarghorbel",
+    linkedin: "https://www.linkedin.com/in/iskandar-ghorbel/",
+    mail: "iskandar.ghorbel@ieee.org",
     membership: "Member",
   },
-  { name: "Oumayma Masmoudy", role: "Assistant Secretary" },
-  { name: "Nadine Jellali", role: "Events Coordinator", membership: "Graduate Student Member" },
+  {
+    name: "Oumayma Masmoudy",
+    role: "Assistant Secretary",
+    linkedin: "https://www.linkedin.com/in/oumayma-masmoudy-55b99726b/",
+    mail: "masmoudy.oumayma@ieee.org",
+    membership: "Graduate Student Member",
+  },
+  {
+    name: "Nadine Jellali",
+    role: "Events Coordinator",
+    linkedin: "https://www.linkedin.com/in/nadine-jellali/",
+    mail: "nadinejellali@ieee.org",
+    membership: "Graduate Student Member",
+  }
 ];
 
 // YP Task Force committees, from "Committees & Ambassadors_ YP Task Force List.xlsx".

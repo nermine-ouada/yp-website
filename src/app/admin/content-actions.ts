@@ -182,7 +182,8 @@ async function readPerson(fd: FormData) {
     branch: group === "ambassador" ? optional(fd, "branch") : null,
     membership,
     photo: uploaded ?? optional(fd, "photo"),
-    facebook: optional(fd, "facebook"),
+    linkedin: optional(fd, "linkedin"),
+    mail: optional(fd, "mail"),
     sortOrder: Number.parseInt(text(fd, "sortOrder"), 10) || 0,
     hidden: fd.get("hidden") === "on",
   };
@@ -283,7 +284,8 @@ export type BulkPersonRow = {
   branch: string;
   membership: string;
   photo: string;
-  facebook: string;
+  linkedin: string;
+  mail: string;
 };
 
 const split = (v: string) =>
@@ -339,7 +341,8 @@ export async function bulkCreatePeople(rows: BulkPersonRow[]) {
       branch: r.group === "ambassador" ? r.branch?.trim() || null : null,
       membership: GRADES.includes(r.membership?.trim()) ? r.membership.trim() : null,
       photo: r.photo?.trim() || null,
-      facebook: r.facebook?.trim() || null,
+      linkedin: r.linkedin?.trim() || null,
+      mail: r.mail?.trim() || null,
       sortOrder: start + 1 + i,
     }));
   await prisma.person.createMany({ data });
